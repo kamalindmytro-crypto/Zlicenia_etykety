@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Етикетки</title>
+ 
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Етикетки">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e1113">
+ 
+<style>
+  :root {
+    --bg: #0e1113;
+    --bg-elevated: #171b1e;
+    --bg-card: #1d2225;
+    --stroke: #2c3236;
+    --stroke-soft: #23282b;
+    --text: #edf0f1;
+    --text-dim: #8d9599;
+    --text-faint: #565d61;
+    --signal: #f0a83c;
+    --signal-bright: #ffc266;
+    --signal-dim: #7a5420;
+    --ok: #5fb87d;
+    --ok-bright: #7ed49a;
+    --miss: #d1614f;
+    --miss-bright: #ea8272;
+    --radius: 16px;
+  }
+ 
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+ 
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overscroll-behavior-y: none;
+    height: 100%;
+  }
+ 
+  body {
+    background-image:
+      repeating-linear-gradient(135deg, rgba(240,168,60,0.025) 0px, rgba(240,168,60,0.025) 2px, transparent 2px, transparent 14px);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+ 
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+ 
+  #app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+ 
+  /* ---------- Topbar ---------- */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(16px + env(safe-area-inset-top)) 18px 10px;
+  }
+ 
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    background: var(--signal);
+    color: #241605;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .brand-text {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+ 
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--stroke);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color .15s, color .15s, transform .1s;
+  }
+  .icon-btn:active { transform: scale(0.94); }
+  .icon-btn svg { width: 17px; height: 17px; }
+ 
+  /* ---------- Tabs ---------- */
+  .mode-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 6px 18px 14px;
+  }
+  .mode-tab {
+    flex: 1;
+    padding: 11px 8px;
+    border-radius: 12px;
+    border: 1px solid var(--stroke);
+    background: var(--bg-card);
+    color: var(--text-dim);
+    font-size: 12.5px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: border-color .15s, background .15s, color .15s;
+  }
+  .mode-tab .mt-count {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .mode-tab.active {
+    border-color: var(--signal-dim);
+    background: rgba(240,168,60,0.09);
+    color: var(--signal-bright);
+  }
+  .mode-tab.active .mt-count { color: var(--signal-bright); }
+ 
+  /* ---------- Main actions ---------- */
+  .main-actions {
+    padding: 4px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+ 
+  .action-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 16px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: transform .12s, filter .15s;
+  }
+  .action-card:active { transform: scale(0.98); }
+ 
+  .action-card.card-scan {
+    background: linear-gradient(135deg, var(--signal-bright) 0%, var(--signal) 100%);
+    color: #241605;
+  }
+  .action-card.card-verify {
+    background: var(--bg-card);
+    border: 1.5px solid var(--stroke);
+    color: var(--text);
+  }
+  .action-card.card-verify:active { filter: brightness(1.1); }
+ 
+  .action-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-scan .action-icon { background: rgba(36,22,5,0.15); }
+  .card-verify .action-icon { background: rgba(240,168,60,0.1); color: var(--signal); }
+  .action-icon svg { width: 22px; height: 22px; }
+ 
+  .action-text { flex: 1; min-width: 0; }
+  .action-title {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+  .action-sub {
+    font-size: 12px;
+    opacity: 0.75;
+    font-weight: 500;
+  }
+  .card-verify .action-sub { color: var(--text-faint); opacity: 1; }
+ 
+  /* ---------- List ---------- */
+  .list-section {
+    flex: 1;
+    padding: 0 18px 18px;
+    overflow-y: auto;
+  }
+ 
+  .list-section-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 4px 0 10px 2px;
+  }
+ 
+  .entry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+ 
+  .entry-empty {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 13.5px;
+    padding: 48px 20px;
+    line-height: 1.5;
+  }
+  .entry-empty svg { width: 32px; height: 32px; margin-bottom: 10px; opacity: 0.4; }
+ 
+  .entry-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    border-radius: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--stroke-soft);
+    position: relative;
+  }
+ 
+  .entry-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+  .entry-badge.machine {
+    background: rgba(240,168,60,0.12);
+    color: var(--signal-bright);
+    border: 1px solid rgba(240,168,60,0.25);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+  }
+  .entry-badge.found {
+    background: rgba(95,184,125,0.12);
+    color: var(--ok-bright);
+    border: 1px solid rgba(95,184,125,0.3);
+  }
+  .entry-badge.missing {
+    background: rgba(209,97,79,0.12);
+    color: var(--miss-bright);
+    border: 1px solid rgba(209,97,79,0.3);
+  }
+ 
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .entry-meta {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+  .entry-meta .machine-tag {
+    color: var(--signal-bright);
+    font-weight: 700;
+  }
+  .entry-meta .found-tag { color: var(--ok-bright); font-weight: 700; }
+  .entry-meta .missing-tag { color: var(--miss-bright); font-weight: 700; }
+ 
+  .entry-menu-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .entry-menu-btn:hover { color: var(--text); background: var(--bg-elevated); }
+  .entry-menu-btn svg { width: 17px; height: 17px; }
+ 
+  .item-menu {
+    position: absolute;
+    right: 8px;
+    top: 48px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 10;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    display: none;
+    min-width: 130px;
+  }
+  .item-menu.show { display: block; }
+  .item-menu button {
+    width: 100%;
+    text-align: left;
+    padding: 11px 14px;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 13.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .item-menu button:hover { background: var(--stroke-soft); }
+  .item-menu button.danger { color: var(--miss-bright); }
+  .item-menu svg { width: 15px; height: 15px; }
+ 
+  /* ---------- Overlay & sheets ---------- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(3px);
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+ 
+  .sheet {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 100%);
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-elevated);
+    border-radius: 24px 24px 0 0;
+    border: 1px solid var(--stroke);
+    border-bottom: none;
+    z-index: 50;
+    padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+    transition: transform .32s cubic-bezier(.32,.72,0,1);
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .sheet.show { transform: translate(-50%, 0); }
+ 
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 3px;
+    background: var(--stroke);
+    margin: 6px auto 16px;
+  }
+ 
+  .sheet-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .sheet-subtitle {
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 20px;
+  }
+ 
+  .field { margin-bottom: 16px; }
+  .field-label {
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .field-input {
+    width: 100%;
+    padding: 15px 16px;
+    border-radius: 14px;
+    border: 1.5px solid var(--stroke);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 17px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .field-input:focus { border-color: var(--signal); }
+  .field-input.mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .field-input::placeholder { color: var(--text-faint); }
+  .field-hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 6px;
+  }
+ 
+  .sheet-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .sheet-actions .btn-primary, .sheet-actions .btn-secondary { flex: 1; }
+ 
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    border-radius: 15px;
+    border: none;
+    background: var(--signal);
+    color: #241605;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform .12s, filter .15s;
+  }
+  .btn-primary:active { transform: scale(0.98); filter: brightness(1.08); }
+  .btn-primary:disabled { opacity: 0.4; pointer-events: none; }
+  .btn-primary svg { width: 18px; height: 18px; }
+ 
+  .btn-secondary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 15px;
+    border: 1px solid var(--stroke);
+    background: var(--bg-card);
+    color: var(--text-dim);
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: border-color .15s, color .15s, transform .12s;
+  }
+  .btn-secondary:active { transform: scale(0.98); }
+ 
+  /* ---------- Machine picker ---------- */
+  .machine-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 6px;
+    max-height: 48vh;
+    overflow-y: auto;
+    padding-bottom: 4px;
+  }
+  .machine-chip {
+    padding: 11px 4px;
+    border-radius: 11px;
+    border: 1.5px solid var(--stroke);
+    background: var(--bg-card);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s, transform .1s;
+  }
+  .machine-chip:active { transform: scale(0.94); }
+  .machine-chip.selected {
+    border-color: var(--signal);
+    background: rgba(240,168,60,0.14);
+    color: var(--signal-bright);
+  }
+ 
+  /* ---------- Scan / capture states ---------- */
+  .scan-mic-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0 26px;
+  }
+  .scan-preview {
+    max-width: 100%;
+    max-height: 220px;
+    border-radius: 14px;
+    border: 1px solid var(--stroke);
+    display: none;
+  }
+  .scan-spinner {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid var(--stroke);
+    border-top-color: var(--signal);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+ 
+  .scan-code-display {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--signal-bright);
+    text-align: center;
+    margin: 6px 0 2px;
+  }
+ 
+  .result-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+  }
+  .result-banner.found {
+    background: rgba(95,184,125,0.1);
+    border: 1px solid rgba(95,184,125,0.3);
+  }
+  .result-banner.missing {
+    background: rgba(209,97,79,0.1);
+    border: 1px solid rgba(209,97,79,0.3);
+  }
+  .result-banner-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .result-banner.found .result-banner-icon { background: rgba(95,184,125,0.18); color: var(--ok-bright); }
+  .result-banner.missing .result-banner-icon { background: rgba(209,97,79,0.18); color: var(--miss-bright); }
+  .result-banner-icon svg { width: 20px; height: 20px; }
+  .result-banner-title { font-size: 14.5px; font-weight: 800; }
+  .result-banner.found .result-banner-title { color: var(--ok-bright); }
+  .result-banner.missing .result-banner-title { color: var(--miss-bright); }
+  .result-banner-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+ 
+  /* ---------- Source picker ---------- */
+  .source-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .source-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 15px;
+    border: 1px solid var(--stroke);
+    background: var(--bg-card);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .15s, transform .12s, background .15s;
+  }
+  .source-option:active { transform: scale(0.98); }
+  .source-option-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(240,168,60,0.1);
+    border: 1px solid rgba(240,168,60,0.25);
+    color: var(--signal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .source-option-icon svg { width: 20px; height: 20px; }
+  .source-option-text { display: flex; flex-direction: column; gap: 2px; }
+  .source-option-title { font-size: 14.5px; font-weight: 700; color: var(--text); }
+  .source-option-sub { font-size: 12.5px; color: var(--text-faint); }
+ 
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translate(-50%, 20px);
+    background: var(--bg-card);
+    border: 1px solid var(--stroke);
+    color: var(--text);
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    font-weight: 700;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: 90%;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+  .toast.danger .dot { background: var(--miss); }
+ 
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+</head>
+<body>
+ 
+<div id="app">
+ 
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">E</div>
+      <div class="brand-text">Етикетки</div>
+    </div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Налаштування">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+ 
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabLabels">
+      <span>Злічення</span>
+      <span class="mt-count" id="countLabels">0</span>
+    </button>
+    <button class="mode-tab" id="tabVerify">
+      <span>Звірка складу</span>
+      <span class="mt-count" id="countVerify">0</span>
+    </button>
+  </div>
+ 
+  <div class="main-actions">
+    <button class="action-card card-scan" id="scanLabelBtn">
+      <div class="action-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="action-text">
+        <div class="action-title">Додати зліцензію</div>
+        <div class="action-sub">Фото коду → вибір машини</div>
+      </div>
+    </button>
+    <button class="action-card card-verify" id="verifyLabelBtn">
+      <div class="action-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </div>
+      <div class="action-text">
+        <div class="action-title">Звірити на складі</div>
+        <div class="action-sub">Фото етикетки на коробці</div>
+      </div>
+    </button>
+  </div>
+ 
+  <div class="list-section">
+    <div class="list-section-title" id="listTitle">Список зліцензій</div>
+    <div class="entry-list" id="entryList"></div>
+  </div>
+ 
+</div>
+ 
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+ 
+<!-- Source picker (shared by both scan flows) -->
+<div class="sheet" id="sourceSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sourceSheetTitle">Додати фото</div>
+  <div class="sheet-subtitle">Оберіть джерело зображення</div>
+  <div class="source-options">
+    <button class="source-option" id="sourceCameraBtn">
+      <span class="source-option-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </span>
+      <span class="source-option-text">
+        <span class="source-option-title">Зробити фото</span>
+        <span class="source-option-sub">Відкрити камеру</span>
+      </span>
+    </button>
+    <button class="source-option" id="sourceGalleryBtn">
+      <span class="source-option-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </span>
+      <span class="source-option-text">
+        <span class="source-option-title">Обрати з галереї</span>
+        <span class="source-option-sub">Завантажити наявне фото</span>
+      </span>
+    </button>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-secondary" id="cancelSource" style="width:100%;">Скасувати</button>
+  </div>
+</div>
+ 
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+<input type="file" id="galleryInput" accept="image/*" style="display:none;">
+ 
+<!-- Scan label flow: processing -> confirm code -> pick machine -->
+<div class="sheet" id="scanSheet">
+  <div class="sheet-handle"></div>
+ 
+  <div id="scanProcessing">
+    <div class="sheet-title">Читаю код...</div>
+    <div class="sheet-subtitle">AI розпізнає шестизначний номер</div>
+    <div class="scan-mic-zone">
+      <img id="scanPreviewImg" class="scan-preview">
+      <div class="scan-spinner"></div>
+    </div>
+  </div>
+ 
+  <div id="scanConfirm" style="display:none;">
+    <div class="sheet-title">Перевірте код</div>
+    <div class="sheet-subtitle">Поправте, якщо AI помилився</div>
+    <div class="field">
+      <label class="field-label">Код зліцензії</label>
+      <input type="text" inputmode="numeric" class="field-input mono" id="scanCodeInput" placeholder="069526" maxlength="8">
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="cancelScanConfirm">Скасувати</button>
+      <button class="btn-primary" id="nextScanConfirm">Далі — вибрати машину</button>
+    </div>
+  </div>
+ 
+  <div id="scanMachinePick" style="display:none;">
+    <div class="sheet-title">На яку машину?</div>
+    <div class="sheet-subtitle">Код <span class="mono" id="scanMachineCodeLabel" style="color:var(--signal-bright); font-weight:700;"></span> — оберіть виробничу машину</div>
+    <div class="machine-grid" id="machineGrid"></div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="backScanMachine">Назад</button>
+      <button class="btn-primary" id="saveScanEntry" disabled>Зберегти</button>
+    </div>
+  </div>
+ 
+  <div id="scanError" style="display:none;">
+    <div class="sheet-title">Не вдалося прочитати</div>
+    <div class="sheet-subtitle" id="scanErrorText">Спробуйте ще раз</div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="scanErrorClose">Закрити</button>
+      <button class="btn-primary" id="scanErrorRetry">Спробувати ще раз</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Verify flow: processing -> result -->
+<div class="sheet" id="verifySheet">
+  <div class="sheet-handle"></div>
+ 
+  <div id="verifyProcessing">
+    <div class="sheet-title">Звіряю код...</div>
+    <div class="sheet-subtitle">AI читає етикетку на коробці</div>
+    <div class="scan-mic-zone">
+      <img id="verifyPreviewImg" class="scan-preview">
+      <div class="scan-spinner"></div>
+    </div>
+  </div>
+ 
+  <div id="verifyResult" style="display:none;">
+    <div class="sheet-title">Результат звірки</div>
+    <div class="scan-code-display" id="verifyCodeDisplay">069526</div>
+    <div class="result-banner" id="verifyResultBanner">
+      <div class="result-banner-icon" id="verifyResultIcon"></div>
+      <div>
+        <div class="result-banner-title" id="verifyResultTitle">Знайдено</div>
+        <div class="result-banner-sub" id="verifyResultSub">Машина J119W</div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="cancelVerifyResult">Скасувати</button>
+      <button class="btn-primary" id="saveVerifyEntry">Додати у список звірки</button>
+    </div>
+  </div>
+ 
+  <div id="verifyError" style="display:none;">
+    <div class="sheet-title">Не вдалося прочитати</div>
+    <div class="sheet-subtitle" id="verifyErrorText">Спробуйте ще раз</div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="verifyErrorClose">Закрити</button>
+      <button class="btn-primary" id="verifyErrorRetry">Спробувати ще раз</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Edit entry sheet -->
+<div class="sheet" id="editSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="editSheetTitle">Редагувати запис</div>
+  <div class="sheet-subtitle">Змініть код або машину</div>
+  <div class="field">
+    <label class="field-label">Код</label>
+    <input type="text" inputmode="numeric" class="field-input mono" id="editCodeInput" maxlength="8">
+  </div>
+  <div class="field" id="editMachineField">
+    <label class="field-label">Машина</label>
+    <div class="machine-grid" id="editMachineGrid"></div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-secondary" id="cancelEditEntry">Скасувати</button>
+    <button class="btn-primary" id="saveEditEntry">Зберегти зміни</button>
+  </div>
+</div>
+ 
+<!-- Settings sheet -->
+<div class="sheet" id="settingsSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Налаштування</div>
+  <div class="sheet-subtitle">Gemini API ключ та керування даними</div>
+ 
+  <div class="field">
+    <label class="field-label">Gemini API ключ</label>
+    <input type="password" class="field-input mono" id="settingApiKey" placeholder="AIzaSy..." autocomplete="off">
+    <div class="field-hint">Отримати безкоштовно: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--signal);">aistudio.google.com/apikey</a>. Зберігається лише на цьому пристрої.</div>
+  </div>
+ 
+  <div class="field">
+    <label class="field-label">Дані</label>
+    <div class="field-hint">Список зліцензій: <span id="settingsCountLabels" class="mono">0</span> · Список звірки: <span id="settingsCountVerify" class="mono">0</span></div>
+  </div>
+ 
+  <div class="sheet-actions">
+    <button class="btn-secondary" id="clearLabelsBtn">Очистити зліцензії</button>
+    <button class="btn-secondary" id="clearVerifyBtn">Очистити звірку</button>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-primary" id="saveApiKeyBtn" style="width:100%;">Зберегти ключ</button>
+  </div>
+</div>
+ 
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg">Збережено</span></div>
+ 
+<script>
+(function() {
+  'use strict';
+ 
+  const STORAGE_KEY = 'label_tracker_state_v1';
+ 
+  const MACHINES = [
+    'J119W','S104W','S101P','S103W','J118P','J117P','S107W','J115P','J122P','J116P',
+    'J120W','S111W','S108W','J121W','S99W','J126W','S110W','S105P','S114P','S112P',
+    'S97W','S96W','V93W','S109W','S100W','S98W','J124W','J123W','V91W','V95P',
+    'S126W','S63W','S106','J130','J127','S128','J129','S125','S113'
+  ];
+ 
+  const defaultState = {
+    apiKey: '',
+    labels: [],  // {id, code, machine, ts}
+    verifications: [] // {id, code, found, machine, ts}
+  };
+ 
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { ...defaultState };
+      const parsed = JSON.parse(raw);
+      return { ...defaultState, ...parsed };
+    } catch (e) {
+      return { ...defaultState };
+    }
+  }
+ 
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+ 
+  let state = loadState();
+  let activeMode = 'labels'; // 'labels' | 'verify'
+ 
+  // ---------- Helpers ----------
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+ 
+  function fmtDate(ts) {
+    const d = new Date(ts);
+    const datePart = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+    const timePart = d.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+    return `${datePart} · ${timePart}`;
+  }
+ 
+  // Normalize a recognized code: strip any leading letter/symbol prefix (E, G, #),
+  // keep the six digits starting with 0.
+  function normalizeCode(raw) {
+    if (!raw) return '';
+    const digitsOnly = String(raw).replace(/[^0-9]/g, '');
+    // Take the last 6 digits if longer (in case prefix digits leaked through),
+    // or the string itself if exactly 6.
+    if (digitsOnly.length >= 6) {
+      // Prefer a 6-digit run that starts with 0 if present
+      const match = digitsOnly.match(/0\d{5}/);
+      if (match) return match[0];
+      return digitsOnly.slice(-6);
+    }
+    return digitsOnly;
+  }
+ 
+  function isValidCode(code) {
+    return /^0\d{5}$/.test(code);
+  }
+ 
+  // ---------- Toast ----------
+  let toastTimer;
+  function showToast(msg, danger) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    toastMsg.textContent = msg;
+    toast.classList.toggle('danger', !!danger);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+ 
+  // ---------- Sheets ----------
+  const overlay = document.getElementById('overlay');
+  const sheets = {
+    source: document.getElementById('sourceSheet'),
+    scan: document.getElementById('scanSheet'),
+    verify: document.getElementById('verifySheet'),
+    edit: document.getElementById('editSheet'),
+    settings: document.getElementById('settingsSheet')
+  };
+ 
+  function openSheet(key) {
+    closeAllSheets(false);
+    overlay.classList.add('show');
+    sheets[key].classList.add('show');
+  }
+ 
+  function closeAllSheets(hideOverlay = true) {
+    Object.values(sheets).forEach(s => s.classList.remove('show'));
+    if (hideOverlay) overlay.classList.remove('show');
+    document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('show'));
+  }
+ 
+  overlay.addEventListener('click', closeAllSheets);
+ 
+  // ---------- Mode tabs ----------
+  const tabLabels = document.getElementById('tabLabels');
+  const tabVerify = document.getElementById('tabVerify');
+  const listTitle = document.getElementById('listTitle');
+ 
+  function setMode(mode) {
+    activeMode = mode;
+    tabLabels.classList.toggle('active', mode === 'labels');
+    tabVerify.classList.toggle('active', mode === 'verify');
+    listTitle.textContent = mode === 'labels' ? 'Список зліцензій' : 'Список звірки складу';
+    renderList();
+  }
+ 
+  tabLabels.addEventListener('click', () => setMode('labels'));
+  tabVerify.addEventListener('click', () => setMode('verify'));
+ 
+  // ---------- Rendering counts + list ----------
+  function renderCounts() {
+    document.getElementById('countLabels').textContent = state.labels.length;
+    document.getElementById('countVerify').textContent = state.verifications.length;
+    document.getElementById('settingsCountLabels').textContent = state.labels.length;
+    document.getElementById('settingsCountVerify').textContent = state.verifications.length;
+  }
+ 
+  function renderList() {
+    const listEl = document.getElementById('entryList');
+    const items = activeMode === 'labels' ? state.labels : state.verifications;
+ 
+    if (items.length === 0) {
+      listEl.innerHTML = `
+        <div class="entry-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 10px; display:block;"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          ${activeMode === 'labels' ? 'Поки що немає зліцензій.<br>Натисніть «Додати зліцензію», щоб почати.' : 'Поки що немає звірених етикеток.<br>Натисніть «Звірити на складі», щоб почати.'}
+        </div>`;
+      return;
+    }
+ 
+    listEl.innerHTML = '';
+    items.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'entry-card';
+      row.dataset.id = entry.id;
+ 
+      let badgeHtml, metaHtml;
+      if (activeMode === 'labels') {
+        badgeHtml = `<div class="entry-badge machine">${escapeHtml(entry.machine)}</div>`;
+        metaHtml = `<span class="machine-tag">${escapeHtml(entry.machine)}</span> · ${fmtDate(entry.ts)}`;
+      } else {
+        if (entry.found) {
+          badgeHtml = `<div class="entry-badge found"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>`;
+          metaHtml = `<span class="found-tag">${escapeHtml(entry.machine)}</span> · ${fmtDate(entry.ts)}`;
+        } else {
+          badgeHtml = `<div class="entry-badge missing"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>`;
+          metaHtml = `<span class="missing-tag">без зліцензії</span> · ${fmtDate(entry.ts)}`;
+        }
+      }
+ 
+      row.innerHTML = `
+        ${badgeHtml}
+        <div class="entry-info">
+          <div class="entry-code mono">${escapeHtml(entry.code)}</div>
+          <div class="entry-meta">${metaHtml}</div>
+        </div>
+        <button class="entry-menu-btn" aria-label="Дії">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
+        </button>
+        <div class="item-menu">
+          ${activeMode === 'labels' ? '<button class="edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Редагувати</button>' : ''}
+          <button class="delete-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>Видалити</button>
+        </div>
+      `;
+      listEl.appendChild(row);
+    });
+  }
+ 
+  document.getElementById('entryList').addEventListener('click', (e) => {
+    const menuBtn = e.target.closest('.entry-menu-btn');
+    const row = e.target.closest('.entry-card');
+    if (!row) return;
+    const id = row.dataset.id;
+ 
+    if (menuBtn) {
+      const menu = row.querySelector('.item-menu');
+      const isOpen = menu.classList.contains('show');
+      document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('show'));
+      if (!isOpen) menu.classList.add('show');
+      return;
+    }
+ 
+    if (e.target.closest('.edit-btn')) {
+      openEditEntry(id);
+      return;
+    }
+ 
+    if (e.target.closest('.delete-btn')) {
+      deleteEntry(id);
+      return;
+    }
+  });
+ 
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.entry-menu-btn') && !e.target.closest('.item-menu')) {
+      document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('show'));
+    }
+  });
+ 
+  function deleteEntry(id) {
+    if (activeMode === 'labels') {
+      state.labels = state.labels.filter(e => e.id !== id);
+    } else {
+      state.verifications = state.verifications.filter(e => e.id !== id);
+    }
+    saveState();
+    renderCounts();
+    renderList();
+    showToast('Запис видалено', true);
+  }
+ 
+  // ---------- Edit entry (labels only get machine editing) ----------
+  let editingId = null;
+  const editCodeInput = document.getElementById('editCodeInput');
+  const editMachineField = document.getElementById('editMachineField');
+  const editMachineGrid = document.getElementById('editMachineGrid');
+  let editSelectedMachine = null;
+ 
+  function openEditEntry(id) {
+    const list = activeMode === 'labels' ? state.labels : state.verifications;
+    const entry = list.find(e => e.id === id);
+    if (!entry) return;
+    editingId = id;
+    editCodeInput.value = entry.code;
+    document.getElementById('editSheetTitle').textContent =
+      activeMode === 'labels' ? 'Редагувати зліцензію' : 'Редагувати запис звірки';
+ 
+    if (activeMode === 'labels') {
+      editMachineField.style.display = 'block';
+      editSelectedMachine = entry.machine;
+      bindEditMachineGrid();
+    } else {
+      editMachineField.style.display = 'none';
+      editSelectedMachine = null;
+    }
+ 
+    openSheet('edit');
+    setTimeout(() => editCodeInput.focus(), 320);
+  }
+ 
+  function bindEditMachineGrid() {
+    editMachineGrid.innerHTML = '';
+    MACHINES.forEach(m => {
+      const chip = document.createElement('button');
+      chip.className = 'machine-chip' + (m === editSelectedMachine ? ' selected' : '');
+      chip.textContent = m;
+      chip.addEventListener('click', () => {
+        editSelectedMachine = m;
+        Array.from(editMachineGrid.children).forEach(c => {
+          c.classList.toggle('selected', c.textContent === editSelectedMachine);
+        });
+      });
+      editMachineGrid.appendChild(chip);
+    });
+  }
+ 
+  document.getElementById('cancelEditEntry').addEventListener('click', closeAllSheets);
+ 
+  document.getElementById('saveEditEntry').addEventListener('click', () => {
+    const list = activeMode === 'labels' ? state.labels : state.verifications;
+    const entry = list.find(e => e.id === editingId);
+    if (!entry) return;
+ 
+    const rawCode = editCodeInput.value.trim();
+    const code = normalizeCode(rawCode);
+    if (!isValidCode(code)) { showToast('Код має бути 6 цифр, починається з 0', true); return; }
+ 
+    entry.code = code;
+    if (activeMode === 'labels') {
+      if (!editSelectedMachine) { showToast('Оберіть машину', true); return; }
+      entry.machine = editSelectedMachine;
+    } else {
+      // Re-check against labels if code changed
+      const match = state.labels.find(l => l.code === code);
+      entry.found = !!match;
+      entry.machine = match ? match.machine : null;
+    }
+ 
+    saveState();
+    renderCounts();
+    renderList();
+    closeAllSheets();
+    showToast('Зміни збережено');
+  });
+ 
+  // ---------- Source picker (shared) ----------
+  let pendingFlow = null; // 'scan' | 'verify'
+ 
+  document.getElementById('scanLabelBtn').addEventListener('click', () => {
+    if (!state.apiKey) { showToast('Спочатку додайте Gemini API ключ у налаштуваннях', true); openSettings(); return; }
+    pendingFlow = 'scan';
+    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
+    openSheet('source');
+  });
+ 
+  document.getElementById('verifyLabelBtn').addEventListener('click', () => {
+    if (!state.apiKey) { showToast('Спочатку додайте Gemini API ключ у налаштуваннях', true); openSettings(); return; }
+    pendingFlow = 'verify';
+    document.getElementById('sourceSheetTitle').textContent = 'Фото етикетки на коробці';
+    openSheet('source');
+  });
+ 
+  document.getElementById('cancelSource').addEventListener('click', closeAllSheets);
+ 
+  document.getElementById('sourceCameraBtn').addEventListener('click', () => {
+    closeAllSheets();
+    const input = document.getElementById('cameraInput');
+    input.value = '';
+    input.click();
+  });
+  document.getElementById('sourceGalleryBtn').addEventListener('click', () => {
+    closeAllSheets();
+    const input = document.getElementById('galleryInput');
+    input.value = '';
+    input.click();
+  });
+ 
+  document.getElementById('cameraInput').addEventListener('change', handleFileSelected);
+  document.getElementById('galleryInput').addEventListener('change', handleFileSelected);
+ 
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        const match = /^data:(.+);base64,(.*)$/.exec(result);
+        if (!match) { reject(new Error('read failed')); return; }
+        resolve({ mimeType: match[1], base64: match[2] });
+      };
+      reader.onerror = () => reject(new Error('read failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+ 
+  async function handleFileSelected(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+ 
+    if (pendingFlow === 'scan') {
+      await runScanFlow(file);
+    } else if (pendingFlow === 'verify') {
+      await runVerifyFlow(file);
+    }
+  }
+ 
+  // ---------- Gemini call (shared code recognition) ----------
+  async function recognizeCodeWithGemini(base64Image, mimeType, apiKey) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
+    const prompt = `На цьому фото є етикетка або документ з ідентифікаційним кодом. Код складається рівно з шести цифр і завжди починається з цифри 0 (наприклад 069526). Перед нулем іноді може стояти літера (E або G) або символ #, або нічого не стояти — це не частина коду, ігноруй такий префікс.
+Знайди цей шестизначний код на фото та поверни ЛИШЕ JSON, без жодного іншого тексту, у форматі:
+{"code": "069526"}
+Якщо код не вдалося знайти або він нечіткий, поверни {"code": null}.`;
+ 
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        model: 'gemini-3.5-flash',
+        input: [
+          { type: 'image', mime_type: mimeType, data: base64Image },
+          { type: 'text', text: prompt }
+        ],
+        response_format: { type: 'text', mime_type: 'application/json' }
+      })
+    });
+ 
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => '');
+      throw new Error('Gemini API error: ' + response.status + ' ' + errBody);
+    }
+ 
+    const data = await response.json();
+ 
+    let rawText = null;
+    if (Array.isArray(data.outputs)) {
+      const textOut = data.outputs.find(o => o.type === 'text');
+      if (textOut) rawText = textOut.text;
+    }
+    if (!rawText && Array.isArray(data.steps)) {
+      for (const step of data.steps) {
+        if (step.type === 'model_output' && Array.isArray(step.content)) {
+          const textBlock = step.content.find(c => c.type === 'text');
+          if (textBlock) { rawText = textBlock.text; break; }
+        }
+      }
+    }
+    if (!rawText) throw new Error('empty response: ' + JSON.stringify(data).slice(0, 300));
+ 
+    const cleaned = rawText.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (!parsed.code) throw new Error('code_not_found');
+    return normalizeCode(parsed.code);
+  }
+ 
+  // ---------- Scan (add label) flow ----------
+  const scanStates = {
+    processing: document.getElementById('scanProcessing'),
+    confirm: document.getElementById('scanConfirm'),
+    machinePick: document.getElementById('scanMachinePick'),
+    error: document.getElementById('scanError')
+  };
+  function showScanState(key) {
+    Object.values(scanStates).forEach(el => el.style.display = 'none');
+    scanStates[key].style.display = 'block';
+  }
+ 
+  let lastScanFile = null;
+  let scanSelectedMachine = null;
+ 
+  async function runScanFlow(file) {
+    lastScanFile = file;
+    showScanState('processing');
+    openSheet('scan');
+ 
+    try {
+      const { base64, mimeType } = await fileToBase64(file);
+      const previewImg = document.getElementById('scanPreviewImg');
+      previewImg.src = 'data:' + mimeType + ';base64,' + base64;
+      previewImg.style.display = 'block';
+ 
+      const code = await recognizeCodeWithGemini(base64, mimeType, state.apiKey);
+      document.getElementById('scanCodeInput').value = code;
+      showScanState('confirm');
+    } catch (err) {
+      showScanState('error');
+      const raw = (err && err.message) ? err.message : String(err);
+      document.getElementById('scanErrorText').textContent =
+        raw === 'code_not_found'
+          ? 'Не вдалося знайти шестизначний код на фото. Спробуйте зробити чіткіше фото коду.'
+          : 'Помилка: ' + raw;
+    }
+  }
+ 
+  document.getElementById('cancelScanConfirm').addEventListener('click', closeAllSheets);
+  document.getElementById('scanErrorClose').addEventListener('click', closeAllSheets);
+  document.getElementById('scanErrorRetry').addEventListener('click', () => {
+    pendingFlow = 'scan';
+    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
+    openSheet('source');
+  });
+ 
+  document.getElementById('nextScanConfirm').addEventListener('click', () => {
+    const rawCode = document.getElementById('scanCodeInput').value.trim();
+    const code = normalizeCode(rawCode);
+    if (!isValidCode(code)) { showToast('Код має бути 6 цифр, починається з 0', true); return; }
+    document.getElementById('scanCodeInput').value = code;
+    document.getElementById('scanMachineCodeLabel').textContent = code;
+    scanSelectedMachine = null;
+    buildScanMachineGrid();
+    showScanState('machinePick');
+  });
+ 
+  function buildScanMachineGrid() {
+    const grid = document.getElementById('machineGrid');
+    grid.innerHTML = '';
+    const saveBtn = document.getElementById('saveScanEntry');
+    saveBtn.disabled = true;
+    MACHINES.forEach(m => {
+      const chip = document.createElement('button');
+      chip.className = 'machine-chip';
+      chip.textContent = m;
+      chip.addEventListener('click', () => {
+        scanSelectedMachine = m;
+        Array.from(grid.children).forEach(c => c.classList.toggle('selected', c.textContent === m));
+        saveBtn.disabled = false;
+      });
+      grid.appendChild(chip);
+    });
+  }
+ 
+  document.getElementById('backScanMachine').addEventListener('click', () => showScanState('confirm'));
+ 
+  document.getElementById('saveScanEntry').addEventListener('click', () => {
+    if (!scanSelectedMachine) return;
+    const code = document.getElementById('scanCodeInput').value.trim();
+    state.labels.unshift({
+      id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      code,
+      machine: scanSelectedMachine,
+      ts: Date.now()
+    });
+    saveState();
+    renderCounts();
+    if (activeMode === 'labels') renderList();
+    closeAllSheets();
+    showToast(`Додано: ${code} → ${scanSelectedMachine}`);
+  });
+ 
+  // ---------- Verify (warehouse check) flow ----------
+  const verifyStates = {
+    processing: document.getElementById('verifyProcessing'),
+    result: document.getElementById('verifyResult'),
+    error: document.getElementById('verifyError')
+  };
+  function showVerifyState(key) {
+    Object.values(verifyStates).forEach(el => el.style.display = 'none');
+    verifyStates[key].style.display = 'block';
+  }
+ 
+  let pendingVerifyResult = null; // {code, found, machine}
+ 
+  async function runVerifyFlow(file) {
+    showVerifyState('processing');
+    openSheet('verify');
+ 
+    try {
+      const { base64, mimeType } = await fileToBase64(file);
+      const previewImg = document.getElementById('verifyPreviewImg');
+      previewImg.src = 'data:' + mimeType + ';base64,' + base64;
+      previewImg.style.display = 'block';
+ 
+      const code = await recognizeCodeWithGemini(base64, mimeType, state.apiKey);
+      const match = state.labels.find(l => l.code === code);
+ 
+      pendingVerifyResult = {
+        code,
+        found: !!match,
+        machine: match ? match.machine : null
+      };
+ 
+      document.getElementById('verifyCodeDisplay').textContent = code;
+      const banner = document.getElementById('verifyResultBanner');
+      const icon = document.getElementById('verifyResultIcon');
+      const title = document.getElementById('verifyResultTitle');
+      const sub = document.getElementById('verifyResultSub');
+ 
+      if (match) {
+        banner.className = 'result-banner found';
+        icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+        title.textContent = 'Знайдено';
+        sub.textContent = `Машина ${match.machine}`;
+      } else {
+        banner.className = 'result-banner missing';
+        icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+        title.textContent = 'Не знайдено';
+        sub.textContent = 'Немає відповідної зліцензії — буде додано з поміткою "без зліцензії"';
+      }
+ 
+      showVerifyState('result');
+    } catch (err) {
+      showVerifyState('error');
+      const raw = (err && err.message) ? err.message : String(err);
+      document.getElementById('verifyErrorText').textContent =
+        raw === 'code_not_found'
+          ? 'Не вдалося знайти шестизначний код на фото. Спробуйте зробити чіткіше фото етикетки.'
+          : 'Помилка: ' + raw;
+    }
+  }
+ 
+  document.getElementById('cancelVerifyResult').addEventListener('click', closeAllSheets);
+  document.getElementById('verifyErrorClose').addEventListener('click', closeAllSheets);
+  document.getElementById('verifyErrorRetry').addEventListener('click', () => {
+    pendingFlow = 'verify';
+    document.getElementById('sourceSheetTitle').textContent = 'Фото етикетки на коробці';
+    openSheet('source');
+  });
+ 
+  document.getElementById('saveVerifyEntry').addEventListener('click', () => {
+    if (!pendingVerifyResult) return;
+    state.verifications.unshift({
+      id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      code: pendingVerifyResult.code,
+      found: pendingVerifyResult.found,
+      machine: pendingVerifyResult.machine,
+      ts: Date.now()
+    });
+    saveState();
+    renderCounts();
+    if (activeMode === 'verify') renderList();
+    closeAllSheets();
+    showToast(
+      pendingVerifyResult.found
+        ? `Звірено: ${pendingVerifyResult.code} → ${pendingVerifyResult.machine}`
+        : `Додано без зліцензії: ${pendingVerifyResult.code}`,
+      !pendingVerifyResult.found
+    );
+    pendingVerifyResult = null;
+  });
+ 
+  // ---------- Settings ----------
+  const settingApiKey = document.getElementById('settingApiKey');
+ 
+  function openSettings() {
+    settingApiKey.value = state.apiKey || '';
+    renderCounts();
+    openSheet('settings');
+  }
+  document.getElementById('settingsBtn').addEventListener('click', openSettings);
+ 
+  document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
+    state.apiKey = settingApiKey.value.trim();
+    saveState();
+    closeAllSheets();
+    showToast('Ключ збережено');
+  });
+ 
+  document.getElementById('clearLabelsBtn').addEventListener('click', () => {
+    if (!confirm('Видалити весь список зліцензій? Цю дію не можна скасувати.')) return;
+    state.labels = [];
+    saveState();
+    renderCounts();
+    renderList();
+    showToast('Список зліцензій очищено', true);
+  });
+ 
+  document.getElementById('clearVerifyBtn').addEventListener('click', () => {
+    if (!confirm('Видалити весь список звірки складу? Цю дію не можна скасувати.')) return;
+    state.verifications = [];
+    saveState();
+    renderCounts();
+    renderList();
+    showToast('Список звірки очищено', true);
+  });
+ 
+  // ---------- Init ----------
+  renderCounts();
+  renderList();
+ 
+})();
+</script>
+ 
+</body>
+</html>
+ 
