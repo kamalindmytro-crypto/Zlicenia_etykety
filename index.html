@@ -208,8 +208,12 @@
     <div class="card">
       <h2>1. Фото zliczenia</h2>
       <div class="hint" style="margin-top:0;margin-bottom:10px;">Одне фото — один шестизначний код (наприклад 069526, або з префіксом E/G/#).</div>
-      <button class="big-btn primary" id="pickZlicPhoto">📷 Сфотографувати / вибрати zliczenie</button>
-      <input type="file" id="zlicFileInput" accept="image/*" capture="environment">
+      <div class="btn-row" style="margin-top:0;">
+        <button class="big-btn primary" id="pickZlicCamera">📷 Камера</button>
+        <button class="big-btn secondary" id="pickZlicGallery">🖼 Галерея</button>
+      </div>
+      <input type="file" id="zlicFileInputCamera" accept="image/*" capture="environment">
+      <input type="file" id="zlicFileInputGallery" accept="image/*">
       <div id="zlicThumbRow" class="thumb-row"></div>
       <div id="zlicStatus"></div>
     </div>
@@ -249,8 +253,12 @@
     <div class="card">
       <h2>Фото коробок з етикетками</h2>
       <div class="hint" style="margin-top:0;margin-bottom:10px;">Можна додати кілька фото одразу. Якщо на фото кілька кодів — підтвердіть кожен окремо.</div>
-      <button class="big-btn primary" id="pickMagPhoto">📷 Сфотографувати / вибрати коробки</button>
-      <input type="file" id="magFileInput" accept="image/*" capture="environment" multiple>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="big-btn primary" id="pickMagCamera">📷 Камера</button>
+        <button class="big-btn secondary" id="pickMagGallery">🖼 Галерея</button>
+      </div>
+      <input type="file" id="magFileInputCamera" accept="image/*" capture="environment" multiple>
+      <input type="file" id="magFileInputGallery" accept="image/*" multiple>
       <div id="magQueueStatus"></div>
     </div>
     <div class="search-bar">
@@ -494,7 +502,7 @@ async function callGemini(base64ImagesWithMime, promptText){
   base64ImagesWithMime.forEach(img=>{
     parts.push({ inline_data: { mime_type: img.mime, data: img.data } });
   });
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiKey)}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(geminiKey)}`;
   const resp = await fetch(url, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -521,10 +529,13 @@ async function callGemini(base64ImagesWithMime, promptText){
 let zlicPendingFile = null;
 let zlicPendingPreviewUrl = null;
 
-document.getElementById('pickZlicPhoto').addEventListener('click', ()=>{
-  document.getElementById('zlicFileInput').click();
+document.getElementById('pickZlicCamera').addEventListener('click', ()=>{
+  document.getElementById('zlicFileInputCamera').click();
 });
-document.getElementById('zlicFileInput').addEventListener('change', async (e)=>{
+document.getElementById('pickZlicGallery').addEventListener('click', ()=>{
+  document.getElementById('zlicFileInputGallery').click();
+});
+async function handleZlicFileSelected(e){
   const file = e.target.files[0];
   if(!file) return;
   zlicPendingFile = file;
@@ -533,7 +544,9 @@ document.getElementById('zlicFileInput').addEventListener('change', async (e)=>{
   row.innerHTML = `<div class="thumb"><img src="${zlicPendingPreviewUrl}"></div>`;
   await runZlicRecognition(file);
   e.target.value = '';
-});
+}
+document.getElementById('zlicFileInputCamera').addEventListener('change', handleZlicFileSelected);
+document.getElementById('zlicFileInputGallery').addEventListener('change', handleZlicFileSelected);
 
 async function runZlicRecognition(file){
   const statusEl = document.getElementById('zlicStatus');
@@ -610,13 +623,16 @@ document.getElementById('saveZlicBtn').addEventListener('click', ()=>{
 });
 
 // ================= MAGAZYN (BOX) PHOTO FLOW =================
-document.getElementById('pickMagPhoto').addEventListener('click', ()=>{
-  document.getElementById('magFileInput').click();
+document.getElementById('pickMagCamera').addEventListener('click', ()=>{
+  document.getElementById('magFileInputCamera').click();
+});
+document.getElementById('pickMagGallery').addEventListener('click', ()=>{
+  document.getElementById('magFileInputGallery').click();
 });
 
 let pendingConfirmCodes = []; // {code, checked}
 
-document.getElementById('magFileInput').addEventListener('change', async (e)=>{
+async function handleMagFilesSelected(e){
   const files = Array.from(e.target.files || []);
   if(files.length===0) return;
   e.target.value = '';
@@ -660,7 +676,9 @@ document.getElementById('magFileInput').addEventListener('change', async (e)=>{
 
   pendingConfirmCodes = Array.from(foundCodesSet).map(code=>({code, checked:true, alreadyInList: magazyn.some(m=>m.code===code)}));
   openConfirmCodesModal();
-});
+}
+document.getElementById('magFileInputCamera').addEventListener('change', handleMagFilesSelected);
+document.getElementById('magFileInputGallery').addEventListener('change', handleMagFilesSelected);
 
 function openConfirmCodesModal(){
   const list = document.getElementById('confirmCodesList');
