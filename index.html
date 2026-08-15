@@ -949,7 +949,7 @@
   <div id="scanProcessing" style="display:none;">
     <div class="sheet-step">Крок 3 з 3</div>
     <div class="sheet-title">Читаю дані...</div>
-    <div class="sheet-subtitle">AI розпізнає код, назву та номер зліцензії</div>
+    <div class="sheet-subtitle" id="scanProcessingSub">Розпізнаю код, назву та номер зліцензії</div>
     <div class="scan-mic-zone">
       <img id="scanPreviewImg" class="scan-preview">
       <div class="scan-spinner"></div>
@@ -990,6 +990,9 @@
       <button class="btn-secondary" id="scanErrorClose">Закрити</button>
       <button class="btn-primary" id="scanErrorRetry">Спробувати ще раз</button>
     </div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="scanErrorManual" style="width:100%;">Ввести дані вручну</button>
+    </div>
   </div>
 </div>
  
@@ -999,7 +1002,7 @@
  
   <div id="verifyManual" style="display:none;">
     <div class="sheet-title">Введіть коди вручну</div>
-    <div class="sheet-subtitle">Апаратний режим — без фото та інтернету</div>
+    <div class="sheet-subtitle">Резервний варіант, якщо розпізнавання не спрацювало</div>
     <div class="field">
       <label class="field-label">Код (6 цифр, починається з 0)</label>
       <div style="display:flex; gap:8px;">
@@ -1041,6 +1044,9 @@
     <div class="sheet-actions">
       <button class="btn-secondary" id="verifyErrorClose">Закрити</button>
       <button class="btn-primary" id="verifyErrorRetry">Спробувати ще раз</button>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="verifyErrorManual" style="width:100%;">Ввести коди вручну</button>
     </div>
   </div>
 </div>
@@ -1085,10 +1091,10 @@
   <div class="field">
     <label class="field-label">Спосіб розпізнавання</label>
     <div class="segmented" id="recognitionModeSeg">
-      <button class="seg-btn" data-mode="ai">Через ШІ (фото)</button>
-      <button class="seg-btn hw" data-mode="hardware">Апаратне (без інтернету)</button>
+      <button class="seg-btn" data-mode="ai">Через ШІ (Gemini)</button>
+      <button class="seg-btn hw" data-mode="hardware">Апаратне (OCR)</button>
     </div>
-    <div class="field-hint">Апаратне — код, назву, номер зліцензії та коди звірки вводите вручну, без фото та без інтернету. Через ШІ — дані розпізнаються з фото автоматично (потрібні інтернет та API-ключ).</div>
+    <div class="field-hint">Обидва режими розпізнають дані з фото автоматично — різниця лише в тому, який двигун це робить. <b>Через ШІ</b> — фото надсилається в Gemini (потрібні інтернет та API-ключ, є ліміти запитів). <b>Апаратне (OCR)</b> — текст розпізнається прямо на пристрої (Tesseract.js): без ключа, без лімітів і швидше. Двигун OCR (кілька МБ) завантажується у браузер лише один раз — після цього працює навіть без інтернету. OCR трохи менш точний за ШІ, тож завжди перевіряйте розпізнані поля перед збереженням.</div>
   </div>
  
   <div class="field" id="apiKeysSection">
@@ -1113,6 +1119,11 @@
 </div>
  
 <div class="toast" id="toast"><span class="dot"></span><span id="toastMsg">Збережено</span></div>
+ 
+<!-- Tesseract.js: on-device OCR engine used by "Апаратне" recognition mode.
+     No API key, no per-request limits, works fully offline once the engine
+     and language data are cached by the browser after first use. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
  
 <script>
 (function() {
@@ -1326,14 +1337,15 @@
     const badge = document.getElementById('keyBadge');
     const badgeNum = document.getElementById('keyBadgeNum');
     badge.classList.toggle('hw-mode', isHardwareMode());
-    badgeNum.textContent = isHardwareMode() ? 'HW' : String(state.activeKeyIndex + 1);
+    badgeNum.textContent = isHardwareMode() ? 'OCR' : String(state.activeKeyIndex + 1);
+    badge.title = isHardwareMode() ? 'Апаратний режим (OCR) — натисніть для налаштувань' : 'Активний API ключ — натисніть, щоб перемкнути';
  
     document.getElementById('scanBtnSub').textContent = isHardwareMode()
-      ? 'Машина → дата → дані вручну'
-      : 'Машина → дата → фото коду';
+      ? 'Машина → дата → фото (OCR)'
+      : 'Машина → дата → фото (ШІ)';
     document.getElementById('verifyBtnSub').textContent = isHardwareMode()
-      ? 'Ввести коди вручну'
-      : 'Фото етикетки на коробці';
+      ? 'Фото коробок (OCR)'
+      : 'Фото коробок (ШІ)';
   }
  
   document.getElementById('keyBadge').addEventListener('click', openSettings);
@@ -1675,6 +1687,80 @@
       .filter(c => isValidCode(c));
   }
  
+  // ---------- On-device OCR (Tesseract.js) — used by the "Апаратне" mode ----------
+  let ocrWorkerPromise = null;
+ 
+  // Lazily create (and reuse) a single Tesseract worker so repeated scans
+  // don't re-download/re-init the engine every time.
+  function getOcrWorker() {
+    if (!ocrWorkerPromise) {
+      if (typeof Tesseract === 'undefined') {
+        ocrWorkerPromise = Promise.reject(new Error('ocr_engine_unavailable'));
+      } else {
+        ocrWorkerPromise = Tesseract.createWorker('eng');
+      }
+    }
+    return ocrWorkerPromise;
+  }
+ 
+  async function ocrImageToText(base64, mimeType, onProgress) {
+    const dataUrl = 'data:' + mimeType + ';base64,' + base64;
+    const worker = await getOcrWorker();
+    const { data } = await worker.recognize(dataUrl);
+    if (onProgress) onProgress(100);
+    return data.text || '';
+  }
+ 
+  // Best-effort field extraction from raw OCR text for a single zliczenie document.
+  function extractFieldsFromOcrText(text) {
+    const norm = String(text || '').replace(/\s+/g, ' ');
+ 
+    let code = '';
+    const codeMatches = norm.match(/[EG#]?\s?0\s?\d\s?\d\s?\d\s?\d\s?\d/g);
+    if (codeMatches && codeMatches.length) {
+      code = normalizeCode(codeMatches[0]);
+    }
+    if (!isValidCode(code)) {
+      const anySix = norm.match(/\b\d{6}\b/g);
+      if (anySix && anySix.length) code = normalizeCode(anySix[0]);
+    }
+ 
+    let nazwa = '';
+    const nazwaMatch = norm.match(/Nazwa[:\s]*([^0-9][^\n]{2,60})/i);
+    if (nazwaMatch) nazwa = nazwaMatch[1].trim();
+ 
+    let orderNumber = '';
+    const orderMatch = norm.match(/Numer\s*zlecen[a-ząćęłńóśźż]*[:\s]*([A-Za-z0-9\/ ]{4,40})/i);
+    if (orderMatch) orderNumber = normalizeOrderNumber(orderMatch[1].trim());
+ 
+    return { code, nazwa, orderNumber };
+  }
+ 
+  // Best-effort extraction of every 6-digit code from raw OCR text (warehouse box photos).
+  function extractAllCodesFromOcrText(text) {
+    const norm = String(text || '').replace(/\s+/g, ' ');
+    const matches = norm.match(/[EG#]?\s?0\s?\d\s?\d\s?\d\s?\d\s?\d/g) || [];
+    const seen = new Set();
+    const codes = [];
+    matches.forEach(m => {
+      const c = normalizeCode(m);
+      if (isValidCode(c) && !seen.has(c)) { seen.add(c); codes.push(c); }
+    });
+    return codes;
+  }
+ 
+  async function recognizeCodeWithOcr(base64Image, mimeType, onProgress) {
+    const text = await ocrImageToText(base64Image, mimeType, onProgress);
+    const result = extractFieldsFromOcrText(text);
+    if (!isValidCode(result.code)) throw new Error('code_not_found');
+    return result;
+  }
+ 
+  async function recognizeMultipleCodesWithOcr(base64Image, mimeType, onProgress) {
+    const text = await ocrImageToText(base64Image, mimeType, onProgress);
+    return extractAllCodesFromOcrText(text);
+  }
+ 
   // Shared helper: extract the text payload from a Gemini Interactions API response.
   function extractGeminiText(data) {
     let rawText = null;
@@ -1715,7 +1801,7 @@
  
   document.getElementById('scanLabelBtn').addEventListener('click', () => {
     if (!isHardwareMode() && !activeApiKey()) {
-      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перейдіть на апаратний режим`, true);
+      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перейдіть на апаратний режим (OCR)`, true);
       openSettings();
       return;
     }
@@ -1818,19 +1904,9 @@
  
   document.getElementById('nextAddDate').addEventListener('click', () => {
     if (!addFlowDate) return;
-    if (isHardwareMode()) {
-      // No AI, no photo — go straight to a blank manual entry form.
-      document.getElementById('scanCodeInput').value = '';
-      document.getElementById('scanNazwaInput').value = '';
-      document.getElementById('scanOrderInput').value = '';
-      document.getElementById('scanConfirmSub').textContent = 'Апаратний режим — введіть дані вручну';
-      fillConfirmSummary();
-      showScanState('confirm');
-    } else {
-      pendingFlow = 'scan';
-      document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
-      openSheet('source');
-    }
+    pendingFlow = 'scan';
+    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
+    openSheet('source');
   });
  
   function fillConfirmSummary() {
@@ -1840,13 +1916,19 @@
  
   document.getElementById('scanErrorClose').addEventListener('click', closeAllSheets);
   document.getElementById('scanErrorRetry').addEventListener('click', () => {
-    if (isHardwareMode()) {
-      showScanState('datePick');
-    } else {
-      pendingFlow = 'scan';
-      document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
-      openSheet('source');
-    }
+    pendingFlow = 'scan';
+    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
+    openSheet('source');
+  });
+  document.getElementById('scanErrorManual').addEventListener('click', () => {
+    // Recognition failed entirely — fall back to a blank, manually-filled form
+    // (machine and date chosen earlier are kept).
+    document.getElementById('scanCodeInput').value = '';
+    document.getElementById('scanNazwaInput').value = '';
+    document.getElementById('scanOrderInput').value = '';
+    document.getElementById('scanConfirmSub').textContent = 'Введіть дані вручну';
+    fillConfirmSummary();
+    showScanState('confirm');
   });
  
   document.getElementById('backScanConfirm').addEventListener('click', () => {
@@ -1854,6 +1936,10 @@
   });
  
   async function runScanFlow(file) {
+    const hw = isHardwareMode();
+    document.getElementById('scanProcessingSub').textContent = hw
+      ? 'Розпізнаю офлайн (OCR)...'
+      : 'AI розпізнає код, назву та номер зліцензії';
     showScanState('processing');
     openSheet('scan');
  
@@ -1863,20 +1949,32 @@
       previewImg.src = 'data:' + mimeType + ';base64,' + base64;
       previewImg.style.display = 'block';
  
-      const result = await recognizeCodeWithGemini(base64, mimeType, activeApiKey());
+      const result = hw
+        ? await recognizeCodeWithOcr(base64, mimeType)
+        : await recognizeCodeWithGemini(base64, mimeType, activeApiKey());
+ 
       document.getElementById('scanCodeInput').value = result.code;
       document.getElementById('scanNazwaInput').value = result.nazwa || '';
       document.getElementById('scanOrderInput').value = result.orderNumber || '';
-      document.getElementById('scanConfirmSub').textContent = 'Поправте, якщо AI помилився';
+      document.getElementById('scanConfirmSub').textContent = hw
+        ? 'Поправте, якщо OCR помилився (назву й номер розпізнає гірше за ШІ)'
+        : 'Поправте, якщо AI помилився';
       fillConfirmSummary();
       showScanState('confirm');
     } catch (err) {
       showScanState('error');
       const raw = (err && err.message) ? err.message : String(err);
-      document.getElementById('scanErrorText').textContent = friendlyErrorText(
-        raw,
-        'Не вдалося знайти шестизначний код на фото. Спробуйте зробити чіткіше фото коду.'
-      );
+      if (hw && raw === 'ocr_engine_unavailable') {
+        document.getElementById('scanErrorText').textContent =
+          'Не вдалося завантажити OCR-двигун. Потрібне одноразове підключення до інтернету, щоб його завантажити у браузер. Перевірте з’єднання або перейдіть на режим «Через ШІ».';
+      } else {
+        document.getElementById('scanErrorText').textContent = friendlyErrorText(
+          raw,
+          hw
+            ? 'Не вдалося знайти шестизначний код на фото. Спробуйте зробити чіткіше, ближче фото коду, з хорошим освітленням.'
+            : 'Не вдалося знайти шестизначний код на фото. Спробуйте зробити чіткіше фото коду.'
+        );
+      }
     }
   }
  
@@ -1924,12 +2022,8 @@
   let verifyManualCodes = [];
  
   document.getElementById('verifyLabelBtn').addEventListener('click', () => {
-    if (isHardwareMode()) {
-      openVerifyManualEntry();
-      return;
-    }
-    if (!activeApiKey()) {
-      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перейдіть на апаратний режим`, true);
+    if (!isHardwareMode() && !activeApiKey()) {
+      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перейдіть на апаратний режим (OCR)`, true);
       openSettings();
       return;
     }
@@ -2009,6 +2103,7 @@
   });
  
   async function runVerifyFlow(files) {
+    const hw = isHardwareMode();
     showVerifyState('processing');
     openSheet('verify');
  
@@ -2024,9 +2119,9 @@
     }
  
     const subEl = document.getElementById('verifyProcessingSub');
-    subEl.textContent = files.length > 1
-      ? `AI читає етикетки на ${files.length} фото...`
-      : 'AI читає етикетки на коробках';
+    subEl.textContent = hw
+      ? (files.length > 1 ? `Розпізнаю офлайн (OCR) ${files.length} фото...` : 'Розпізнаю офлайн (OCR)...')
+      : (files.length > 1 ? `AI читає етикетки на ${files.length} фото...` : 'AI читає етикетки на коробках');
  
     try {
       // Collect codes from every photo, then dedupe across the whole batch —
@@ -2036,7 +2131,9 @@
  
       for (const file of files) {
         const { base64, mimeType } = await fileToBase64(file);
-        const codes = await recognizeMultipleCodesWithGemini(base64, mimeType, activeApiKey());
+        const codes = hw
+          ? await recognizeMultipleCodesWithOcr(base64, mimeType)
+          : await recognizeMultipleCodesWithGemini(base64, mimeType, activeApiKey());
         codes.forEach(code => {
           if (!seenCodes.has(code)) {
             seenCodes.add(code);
@@ -2062,10 +2159,17 @@
     } catch (err) {
       showVerifyState('error');
       const raw = (err && err.message) ? err.message : String(err);
-      document.getElementById('verifyErrorText').textContent = friendlyErrorText(
-        raw,
-        'Не вдалося знайти жодного шестизначного коду на фото. Спробуйте зробити чіткіше фото етикеток.'
-      );
+      if (hw && raw === 'ocr_engine_unavailable') {
+        document.getElementById('verifyErrorText').textContent =
+          'Не вдалося завантажити OCR-двигун. Потрібне одноразове підключення до інтернету, щоб його завантажити у браузер. Перевірте з’єднання або перейдіть на режим «Через ШІ».';
+      } else {
+        document.getElementById('verifyErrorText').textContent = friendlyErrorText(
+          raw,
+          hw
+            ? 'Не вдалося знайти жодного шестизначного коду на фото. Спробуйте зробити чіткіше фото етикеток, ближче й з кращим освітленням.'
+            : 'Не вдалося знайти жодного шестизначного коду на фото. Спробуйте зробити чіткіше фото етикеток.'
+        );
+      }
     }
   }
  
@@ -2114,6 +2218,7 @@
     document.getElementById('sourceSheetTitle').textContent = 'Фото етикеток на коробках';
     openSheet('source');
   });
+  document.getElementById('verifyErrorManual').addEventListener('click', openVerifyManualEntry);
  
   document.getElementById('saveVerifyEntry').addEventListener('click', () => {
     const toSave = pendingVerifyResults.filter(r => !r.removed);
