@@ -487,17 +487,16 @@
   }
  
   function parseLabelCodes(text){
-    const matches = text.match(/[A-Za-z#]?\s*\(?\s*\d{6}\s*\)?/g) || [];
     const out = [];
     const seenDigits = new Set();
-    for(const m of matches){
-      const digitsMatch = m.match(/\d{6}/);
-      if(!digitsMatch) continue;
-      const digits = digitsMatch[0];
+    const re = /([#GEge])\s*(\d{6})(?!\d)|\(\s*([#GEge])?\s*(\d{6})(?!\d)\s*\)/g;
+    let m;
+    while((m = re.exec(text)) !== null){
+      let prefix, digits;
+      if(m[2]){ prefix = m[1].toUpperCase(); digits = m[2]; }
+      else { prefix = m[3] ? m[3].toUpperCase() : ""; digits = m[4]; }
       if(seenDigits.has(digits)) continue;
       seenDigits.add(digits);
-      const prefixMatch = m.match(/^[A-Za-z#]/);
-      const prefix = prefixMatch ? prefixMatch[0].toUpperCase() : "";
       out.push({ raw: prefix + digits, digits });
     }
     return out;
