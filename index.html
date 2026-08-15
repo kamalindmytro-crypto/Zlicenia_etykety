@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Етикетки">
+<meta name="theme-color" content="#14171a">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Етикетки · Трекер</title>
 <style>
   :root{
@@ -162,6 +168,15 @@
  
   .modal-actions{display:flex;gap:8px;margin-top:16px;}
  
+  .apikey-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .apikey-row input[type=radio]{width:16px;height:16px;flex:none;accent-color:var(--amber);}
+  .apikey-row .ak-label{font-size:11px;color:var(--text-dim);width:44px;flex:none;font-family:var(--mono);}
+  .apikey-row input[type=text]{
+    flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    padding:9px 10px;border-radius:7px;font-size:12.5px;font-family:var(--mono);
+  }
+  .apikey-row.active-slot input[type=text]{border-color:var(--amber);}
+  .apikey-row.active-slot .ak-label{color:var(--amber);}
   .settings-list{margin-top:8px;}
   .machine-chip{
     display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);
@@ -210,6 +225,11 @@
  
     <!-- SETTINGS -->
     <section id="view-settings">
+      <div class="field">
+        <label>API ключі Gemini (розпізнавання фото) · перемикання вручну</label>
+        <div id="apiKeysWrap"></div>
+        <div class="status-line" id="apiKeysStatus">Оберіть точкою активний ключ. Модель: gemini-3.5-flash-lite.</div>
+      </div>
       <div class="field">
         <label>Додати номер машини</label>
         <div class="row2">
@@ -328,16 +348,62 @@
   const LS_ORDERS = "flt_orders_v1";
   const LS_LABELS = "flt_labels_v1";
   const LS_MACHINES = "flt_machines_v1";
+  const LS_APIKEYS = "flt_gemini_keys_v1";
+  const LS_ACTIVE_KEY = "flt_gemini_active_v1";
+  const GEMINI_MODEL = "gemini-3.5-flash-lite";
+ 
+  function loadApiKeys(){
+    const raw = JSON.parse(localStorage.getItem(LS_APIKEYS) || "null") || [];
+    const arr = raw.slice(0,5);
+    while(arr.length < 5) arr.push("");
+    return arr;
+  }
  
   const state = {
     orders: JSON.parse(localStorage.getItem(LS_ORDERS) || "[]"),
     labels: JSON.parse(localStorage.getItem(LS_LABELS) || "[]"),
-    machines: JSON.parse(localStorage.getItem(LS_MACHINES) || "null") || DEFAULT_MACHINES.slice()
+    machines: JSON.parse(localStorage.getItem(LS_MACHINES) || "null") || DEFAULT_MACHINES.slice(),
+    apiKeys: loadApiKeys(),
+    activeKeyIndex: Number(localStorage.getItem(LS_ACTIVE_KEY) || "0")
   };
  
   function saveOrders(){ localStorage.setItem(LS_ORDERS, JSON.stringify(state.orders)); }
   function saveLabels(){ localStorage.setItem(LS_LABELS, JSON.stringify(state.labels)); }
   function saveMachines(){ localStorage.setItem(LS_MACHINES, JSON.stringify(state.machines)); }
+  function saveApiKeys(){ localStorage.setItem(LS_APIKEYS, JSON.stringify(state.apiKeys)); }
+  function saveActiveKey(){ localStorage.setItem(LS_ACTIVE_KEY, String(state.activeKeyIndex)); }
+ 
+  function getActiveApiKey(){
+    const k = state.apiKeys[state.activeKeyIndex];
+    return k ? k.trim() : "";
+  }
+ 
+  // ---------- SETTINGS: API KEYS ----------
+  const apiKeysWrap = document.getElementById("apiKeysWrap");
+  function renderApiKeys(){
+    apiKeysWrap.innerHTML = state.apiKeys.map((k,i) => `
+      <div class="apikey-row ${i===state.activeKeyIndex?'active-slot':''}">
+        <input type="radio" name="activeApiKey" value="${i}" ${i===state.activeKeyIndex?'checked':''} data-action="pick-key">
+        <span class="ak-label">Ключ ${i+1}</span>
+        <input type="text" placeholder="Gemini API ключ ${i+1}" value="${escapeAttr(k)}" data-action="edit-key" data-i="${i}">
+      </div>
+    `).join("");
+  }
+  apiKeysWrap.addEventListener("change", (e) => {
+    const radio = e.target.closest("[data-action=pick-key]");
+    if(radio){
+      state.activeKeyIndex = Number(radio.value);
+      saveActiveKey();
+      renderApiKeys();
+    }
+  });
+  apiKeysWrap.addEventListener("input", (e) => {
+    const inp = e.target.closest("[data-action=edit-key]");
+    if(inp){
+      state.apiKeys[Number(inp.dataset.i)] = inp.value;
+      saveApiKeys();
+    }
+  });
  
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
  
@@ -448,26 +514,32 @@
   }
  
   async function ocrImage(file){
+    const apiKey = getActiveApiKey();
+    if(!apiKey){
+      throw new Error(`Немає ключа для слоту ${state.activeKeyIndex+1}. Додайте його в Налаштуваннях або оберіть інший активний ключ.`);
+    }
     const base64 = await fileToBase64(file);
     const mediaType = file.type || "image/jpeg";
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        messages: [{
+        contents: [{
           role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-            { type: "text", text: "Transcribe ALL text visible in this image exactly as shown, preserving the original line breaks and order. Keep Polish, Ukrainian and Russian text as-is, do not translate. Do not add commentary, headers, quotes or explanation. Output ONLY the raw transcribed text." }
+          parts: [
+            { text: "Transcribe ALL text visible in this image exactly as shown, preserving the original line breaks and order. Keep Polish, Ukrainian and Russian text as-is, do not translate. Do not add commentary, headers, quotes or explanation. Output ONLY the raw transcribed text." },
+            { inline_data: { mime_type: mediaType, data: base64 } }
           ]
         }]
       })
     });
     const data = await resp.json();
-    if(data.error) throw new Error(data.error.message || "API error");
-    return (data.content || []).map(b => b.text || "").join("\n");
+    if(data.error){
+      const msg = data.error.message || "Gemini API error";
+      throw new Error(`Слот ${state.activeKeyIndex+1}: ${msg}`);
+    }
+    const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+    return parts.map(p => p.text || "").join("\n");
   }
  
   // ---------- RENDER: ORDERS ----------
@@ -529,7 +601,7 @@
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
  
-  function renderAll(){ recompute(); renderOrders(); renderLabels(); renderMachines(); }
+  function renderAll(){ recompute(); renderOrders(); renderLabels(); renderMachines(); renderApiKeys(); }
  
   // ---------- TABS ----------
   document.querySelectorAll(".tab").forEach(t => {
