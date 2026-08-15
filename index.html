@@ -2,2099 +2,893 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Етикетки</title>
- 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
- 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Етикетки">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0e1113">
- 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Етикетки · Трекер</title>
 <style>
-  :root {
-    --bg: #0e1113;
-    --bg-elevated: #171b1e;
-    --bg-card: #1d2225;
-    --stroke: #2c3236;
-    --stroke-soft: #23282b;
-    --text: #edf0f1;
-    --text-dim: #8d9599;
-    --text-faint: #565d61;
-    --signal: #f0a83c;
-    --signal-bright: #ffc266;
-    --signal-dim: #7a5420;
-    --ok: #5fb87d;
-    --ok-bright: #7ed49a;
-    --miss: #d1614f;
-    --miss-bright: #ea8272;
-    --radius: 16px;
+  :root{
+    --bg:#14171a;
+    --surface:#1c2024;
+    --surface-2:#242a2f;
+    --surface-3:#2c333a;
+    --border:#343c43;
+    --text:#eceeef;
+    --text-muted:#8f9aa3;
+    --text-dim:#666f77;
+    --amber:#f2a93b;
+    --amber-dim:#7a5a1f;
+    --red:#e35b3d;
+    --green:#38c98a;
+    --green-dim:#1c4f3c;
+    --radius:10px;
+    --mono: ui-monospace, "SFMono-Regular", "Roboto Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{-webkit-tap-highlight-color:transparent; padding-bottom:24px;}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
+ 
+  .app{max-width:640px;margin:0 auto;min-height:100vh;background:var(--bg);}
+ 
+  /* HEADER */
+  header.top{
+    position:sticky;top:0;z-index:20;
+    background:linear-gradient(180deg,#181c1f 0%, #14171a 100%);
+    border-bottom:1px solid var(--border);
+    padding:14px 16px 0 16px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .brand .lamp{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px 2px rgba(242,169,59,.55);}
+  .brand h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin:0;color:var(--text);}
+  .brand span{color:var(--text-dim);font-size:12px;margin-left:auto;font-family:var(--mono);}
+ 
+  .tabs{display:flex;gap:2px;}
+  .tab{
+    flex:1;text-align:center;padding:10px 4px 12px 4px;border:none;background:transparent;
+    color:var(--text-muted);font-size:13px;font-weight:600;letter-spacing:.02em;
+    border-bottom:2px solid transparent;cursor:pointer;
+  }
+  .tab.active{color:var(--amber);border-bottom-color:var(--amber);}
+ 
+  main{padding:14px 14px 40px 14px;}
+  section{display:none;}
+  section.active{display:block;}
+ 
+  .toolbar{display:flex;gap:8px;margin-bottom:14px;}
+  .btn{
+    appearance:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+    padding:10px 14px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;
+  }
+  .btn:active{background:var(--surface-3);}
+  .btn-primary{background:var(--amber);color:#1a1400;border-color:var(--amber);flex:1;}
+  .btn-primary:active{background:#d6941f;}
+  .btn-danger{color:var(--red);border-color:var(--amber-dim);}
+  .btn-ghost{background:transparent;}
+  .btn-block{width:100%;}
+  .btn-sm{padding:6px 10px;font-size:12px;border-radius:6px;}
+ 
+  .empty{
+    text-align:center;color:var(--text-dim);padding:50px 20px;font-size:13.5px;line-height:1.6;
+    border:1px dashed var(--border);border-radius:var(--radius);
   }
  
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* ORDER / LABEL ROWS */
+  .row{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--text-dim);
+    border-radius:8px;padding:11px 12px;margin-bottom:8px;cursor:pointer;
+  }
+  .row.matched{border-left-color:var(--green);}
+  .row.warn{border-left-color:var(--red);}
+  .row:active{background:var(--surface-2);}
+  .led{width:9px;height:9px;border-radius:50%;flex:none;background:var(--text-dim);}
+  .row.matched .led{background:var(--green);box-shadow:0 0 6px 1px rgba(56,201,138,.65);animation:pulse 2.4s ease-in-out infinite;}
+  @media (prefers-reduced-motion: reduce){ .row.matched .led{animation:none;} }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  .row-main{flex:1;min-width:0;}
+  .row-line1{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:13px;color:var(--text);}
+  .row-line2{display:flex;justify-content:space-between;gap:8px;margin-top:3px;font-size:11.5px;color:var(--text-muted);}
+  .row-line2 .code{font-family:var(--mono);color:var(--amber);font-size:12px;}
+  .row-line2 .missing{color:var(--red);}
+  .machine-badge{
+    font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px;
+    background:var(--surface-3);color:var(--text-muted);border:1px solid var(--border);white-space:nowrap;
+  }
+  .row.matched .machine-badge{color:var(--green);border-color:var(--green-dim);background:rgba(56,201,138,.08);}
  
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    overscroll-behavior-y: none;
-    height: 100%;
-  }
+  .label-row .code-main{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.02em;}
+  .label-matches{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+  .label-matches .machine-badge{color:var(--green);border-color:var(--green-dim);background:rgba(56,201,138,.08);}
  
-  body {
-    background-image:
-      repeating-linear-gradient(135deg, rgba(240,168,60,0.025) 0px, rgba(240,168,60,0.025) 2px, transparent 2px, transparent 14px);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{
+    background:transparent;border:none;color:var(--text-dim);font-size:16px;padding:4px 6px;cursor:pointer;line-height:1;
   }
+  .icon-btn:active{color:var(--red);}
  
-  .mono {
-    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* MODAL */
+  .overlay{
+    position:fixed;inset:0;background:rgba(6,7,8,.72);display:none;align-items:flex-end;justify-content:center;z-index:100;
   }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--surface);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;
+    border-radius:16px 16px 0 0;border:1px solid var(--border);border-bottom:none;padding:18px 16px 24px 16px;
+    animation:slideup .18s ease-out;
+  }
+  @keyframes slideup{from{transform:translateY(16px);opacity:.6;}to{transform:translateY(0);opacity:1;}}
+  .modal h2{font-size:15px;margin:0 0 14px 0;color:var(--text);letter-spacing:.02em;}
+  .modal h2 .sub{display:block;font-size:11.5px;color:var(--text-dim);font-weight:400;margin-top:2px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:11.5px;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;}
+  .field input[type=text],.field input[type=date],.field select,.field textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);
+    padding:10px 11px;border-radius:8px;font-size:14px;
+  }
+  .field textarea{min-height:110px;resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.5;}
+  .field select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text-dim) 50%),linear-gradient(135deg,var(--text-dim) 50%,transparent 50%);background-position:calc(100% - 18px) center,calc(100% - 13px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+  .row2{display:flex;gap:8px;}
+  .row2 .field{flex:1;}
  
-  #app {
-    width: 100%;
-    max-width: 480px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+  .method-grid{display:flex;gap:8px;margin-bottom:14px;}
+  .method-btn{
+    flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 6px;
+    text-align:center;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;
   }
+  .method-btn .ic{display:block;font-size:20px;margin-bottom:5px;}
+  .method-btn.active{border-color:var(--amber);color:var(--amber);background:rgba(242,169,59,.07);}
  
-  /* ---------- Topbar ---------- */
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: calc(16px + env(safe-area-inset-top)) 18px 10px;
-  }
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .thumb{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb .rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer;}
  
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .brand-mark {
-    width: 26px;
-    height: 26px;
-    border-radius: 7px;
-    background: var(--signal);
-    color: #241605;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .brand-text {
-    font-size: 13px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    font-weight: 700;
-  }
+  .divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border);}
  
-  .icon-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: var(--bg-card);
-    border: 1px solid var(--stroke);
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: border-color .15s, color .15s, transform .1s;
-  }
-  .icon-btn:active { transform: scale(0.94); }
-  .icon-btn svg { width: 17px; height: 17px; }
+  .status-line{font-size:12.5px;color:var(--text-muted);margin:6px 0 12px 0;min-height:16px;}
+  .status-line.err{color:var(--red);}
+  .status-line.ok{color:var(--green);}
  
-  .key-badge {
-    height: 36px;
-    padding: 0 10px;
-    border-radius: 10px;
-    background: rgba(240,168,60,0.1);
-    border: 1px solid rgba(240,168,60,0.3);
-    color: var(--signal-bright);
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform .1s;
+  .review-card{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+  .review-card .rc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .review-card .rc-head span{font-size:11px;color:var(--text-dim);font-family:var(--mono);}
+  .code-chip{
+    display:inline-block;background:var(--surface-3);border:1px solid var(--border);color:var(--amber);
+    font-family:var(--mono);font-size:13px;padding:6px 10px;border-radius:7px;margin:0 6px 6px 0;
   }
-  .key-badge:active { transform: scale(0.94); }
-  .key-badge span::before { content: '№'; opacity: 0.7; margin-right: 1px; }
+  .code-chip .rm{background:none;border:none;color:var(--text-dim);margin-left:6px;cursor:pointer;font-size:12px;}
  
-  /* ---------- Tabs ---------- */
-  .mode-tabs {
-    display: flex;
-    gap: 8px;
-    padding: 6px 18px 14px;
-  }
-  .mode-tab {
-    flex: 1;
-    padding: 11px 8px;
-    border-radius: 12px;
-    border: 1px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text-dim);
-    font-size: 12.5px;
-    font-weight: 700;
-    text-align: center;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    transition: border-color .15s, background .15s, color .15s;
-  }
-  .mode-tab .mt-count {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--text);
-  }
-  .mode-tab.active {
-    border-color: var(--signal-dim);
-    background: rgba(240,168,60,0.09);
-    color: var(--signal-bright);
-  }
-  .mode-tab.active .mt-count { color: var(--signal-bright); }
+  .modal-actions{display:flex;gap:8px;margin-top:16px;}
  
-  /* ---------- Main actions ---------- */
-  .main-actions {
-    padding: 4px 18px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  .settings-list{margin-top:8px;}
+  .machine-chip{
+    display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);
+    font-family:var(--mono);font-size:12.5px;padding:6px 8px 6px 10px;border-radius:7px;margin:0 6px 6px 0;
   }
+  .machine-chip button{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;}
+  .machine-wrap{display:flex;flex-wrap:wrap;}
  
-  .action-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 16px;
-    border-radius: var(--radius);
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    transition: transform .12s, filter .15s;
-  }
-  .action-card:active { transform: scale(0.98); }
- 
-  .action-card.card-scan {
-    background: linear-gradient(135deg, var(--signal-bright) 0%, var(--signal) 100%);
-    color: #241605;
-  }
-  .action-card.card-verify {
-    background: var(--bg-card);
-    border: 1.5px solid var(--stroke);
-    color: var(--text);
-  }
-  .action-card.card-verify:active { filter: brightness(1.1); }
- 
-  .action-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .card-scan .action-icon { background: rgba(36,22,5,0.15); }
-  .card-verify .action-icon { background: rgba(240,168,60,0.1); color: var(--signal); }
-  .action-icon svg { width: 22px; height: 22px; }
- 
-  .action-text { flex: 1; min-width: 0; }
-  .action-title {
-    font-size: 15px;
-    font-weight: 800;
-    margin-bottom: 2px;
-  }
-  .action-sub {
-    font-size: 12px;
-    opacity: 0.75;
-    font-weight: 500;
-  }
-  .card-verify .action-sub { color: var(--text-faint); opacity: 1; }
- 
-  /* ---------- List ---------- */
-  .list-section {
-    flex: 1;
-    padding: 0 18px 18px;
-    overflow-y: auto;
-  }
- 
-  .list-section-title {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    margin: 4px 0 10px 2px;
-  }
- 
-  .entry-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
- 
-  .entry-empty {
-    text-align: center;
-    color: var(--text-faint);
-    font-size: 13.5px;
-    padding: 48px 20px;
-    line-height: 1.5;
-  }
-  .entry-empty svg { width: 32px; height: 32px; margin-bottom: 10px; opacity: 0.4; }
- 
-  .entry-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 14px;
-    border-radius: 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--stroke-soft);
-    position: relative;
-  }
- 
-  .entry-badge {
-    width: 42px;
-    height: 42px;
-    border-radius: 11px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 11px;
-    letter-spacing: 0.02em;
-  }
-  .entry-badge.machine {
-    background: rgba(240,168,60,0.12);
-    color: var(--signal-bright);
-    border: 1px solid rgba(240,168,60,0.25);
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 10.5px;
-  }
-  .entry-badge.found {
-    background: rgba(95,184,125,0.12);
-    color: var(--ok-bright);
-    border: 1px solid rgba(95,184,125,0.3);
-  }
-  .entry-badge.missing {
-    background: rgba(209,97,79,0.12);
-    color: var(--miss-bright);
-    border: 1px solid rgba(209,97,79,0.3);
-  }
- 
-  .entry-info { flex: 1; min-width: 0; }
-  .entry-code {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: 0.02em;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .verified-dot {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: rgba(95,184,125,0.18);
-    color: var(--ok-bright);
-    flex-shrink: 0;
-  }
-  .verified-dot svg { width: 10px; height: 10px; }
-  .entry-meta {
-    font-size: 12px;
-    color: var(--text-faint);
-    margin-top: 2px;
-  }
-  .entry-meta .machine-tag {
-    color: var(--signal-bright);
-    font-weight: 700;
-  }
-  .entry-meta .found-tag { color: var(--ok-bright); font-weight: 700; }
-  .entry-meta .missing-tag { color: var(--miss-bright); font-weight: 700; }
-  .entry-zlecenia {
-    font-size: 10.5px;
-    color: var(--text-faint);
-    margin-top: 2px;
-    letter-spacing: 0.01em;
-  }
- 
-  .entry-menu-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 9px;
-    background: transparent;
-    border: none;
-    color: var(--text-faint);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .entry-menu-btn:hover { color: var(--text); background: var(--bg-elevated); }
-  .entry-menu-btn svg { width: 17px; height: 17px; }
- 
-  .item-menu {
-    position: absolute;
-    right: 8px;
-    top: 48px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--stroke);
-    border-radius: 12px;
-    overflow: hidden;
-    z-index: 10;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-    display: none;
-    min-width: 130px;
-  }
-  .item-menu.show { display: block; }
-  .item-menu button {
-    width: 100%;
-    text-align: left;
-    padding: 11px 14px;
-    background: none;
-    border: none;
-    color: var(--text);
-    font-size: 13.5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .item-menu button:hover { background: var(--stroke-soft); }
-  .item-menu button.danger { color: var(--miss-bright); }
-  .item-menu svg { width: 15px; height: 15px; }
- 
-  /* ---------- Overlay & sheets ---------- */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(3px);
-    z-index: 40;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .2s ease;
-  }
-  .overlay.show { opacity: 1; pointer-events: auto; }
- 
-  .sheet {
-    position: fixed;
-    left: 50%;
-    bottom: 0;
-    transform: translate(-50%, 100%);
-    width: 100%;
-    max-width: 480px;
-    background: var(--bg-elevated);
-    border-radius: 24px 24px 0 0;
-    border: 1px solid var(--stroke);
-    border-bottom: none;
-    z-index: 50;
-    padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
-    transition: transform .32s cubic-bezier(.32,.72,0,1);
-    max-height: 88vh;
-    overflow-y: auto;
-  }
-  .sheet.show { transform: translate(-50%, 0); }
- 
-  .sheet-handle {
-    width: 36px;
-    height: 4px;
-    border-radius: 3px;
-    background: var(--stroke);
-    margin: 6px auto 16px;
-  }
- 
-  .sheet-title {
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 4px;
-  }
-  .sheet-subtitle {
-    font-size: 13px;
-    color: var(--text-faint);
-    margin-bottom: 20px;
-  }
- 
-  .field { margin-bottom: 16px; }
-  .field-label {
-    font-size: 12px;
-    color: var(--text-faint);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    display: block;
-  }
-  .field-input {
-    width: 100%;
-    padding: 15px 16px;
-    border-radius: 14px;
-    border: 1.5px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text);
-    font-size: 17px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .field-input:focus { border-color: var(--signal); }
-  .field-input.mono {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-  }
-  .field-input::placeholder { color: var(--text-faint); }
-  .field-hint {
-    font-size: 12px;
-    color: var(--text-faint);
-    margin-top: 6px;
-  }
- 
-  /* ---------- API key slots ---------- */
-  .key-slot {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-  .key-slot-num {
-    width: 30px;
-    height: 42px;
-    border-radius: 11px;
-    background: var(--bg-card);
-    border: 1.5px solid var(--stroke);
-    color: var(--text-dim);
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 13px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: border-color .15s, color .15s, background .15s;
-  }
-  .key-slot.active .key-slot-num {
-    border-color: var(--signal);
-    background: rgba(240,168,60,0.14);
-    color: var(--signal-bright);
-  }
-  .key-slot-input {
-    flex: 1;
-    min-width: 0;
-    padding: 11px 12px;
-    border-radius: 11px;
-    border: 1.5px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text);
-    font-size: 13px;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .key-slot-input:focus { border-color: var(--signal); }
-  .key-slot-input::placeholder { color: var(--text-faint); font-family: inherit; }
-  .key-slot.active .key-slot-input { border-color: var(--signal-dim); }
-  .key-slot-activate {
-    width: 42px;
-    height: 42px;
-    border-radius: 11px;
-    border: 1.5px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text-faint);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: border-color .15s, color .15s, background .15s, transform .1s;
-  }
-  .key-slot-activate:active { transform: scale(0.92); }
-  .key-slot-activate svg { width: 17px; height: 17px; }
-  .key-slot.active .key-slot-activate {
-    border-color: var(--signal);
-    background: var(--signal);
-    color: #241605;
-  }
- 
-  /* ---------- Recognition method toggle ---------- */
-  .method-toggle {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-  .method-option {
-    flex: 1;
-    padding: 12px 10px;
-    border-radius: 13px;
-    border: 1.5px solid var(--stroke);
-    background: var(--bg-card);
-    cursor: pointer;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    transition: border-color .15s, background .15s, transform .1s;
-  }
-  .method-option:active { transform: scale(0.97); }
-  .method-option-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--text-dim);
-  }
-  .method-option-sub {
-    font-size: 10.5px;
-    color: var(--text-faint);
-    line-height: 1.3;
-  }
-  .method-option.selected {
-    border-color: var(--signal);
-    background: rgba(240,168,60,0.1);
-  }
-  .method-option.selected .method-option-title { color: var(--signal-bright); }
- 
-  .sheet-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 6px;
-  }
-  .sheet-actions .btn-primary, .sheet-actions .btn-secondary { flex: 1; }
- 
-  .btn-primary {
-    width: 100%;
-    padding: 16px;
-    border-radius: 15px;
-    border: none;
-    background: var(--signal);
-    color: #241605;
-    font-size: 15px;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: transform .12s, filter .15s;
-  }
-  .btn-primary:active { transform: scale(0.98); filter: brightness(1.08); }
-  .btn-primary:disabled { opacity: 0.4; pointer-events: none; }
-  .btn-primary svg { width: 18px; height: 18px; }
- 
-  .btn-secondary {
-    width: 100%;
-    padding: 14px;
-    border-radius: 15px;
-    border: 1px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text-dim);
-    font-size: 14.5px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: border-color .15s, color .15s, transform .12s;
-  }
-  .btn-secondary:active { transform: scale(0.98); }
- 
-  /* ---------- Machine picker ---------- */
-  .machine-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 6px;
-    max-height: 48vh;
-    overflow-y: auto;
-    padding-bottom: 4px;
-  }
-  .machine-chip {
-    padding: 11px 4px;
-    border-radius: 11px;
-    border: 1.5px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text-dim);
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 12.5px;
-    font-weight: 700;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .15s, background .15s, color .15s, transform .1s;
-  }
-  .machine-chip:active { transform: scale(0.94); }
-  .machine-chip.selected {
-    border-color: var(--signal);
-    background: rgba(240,168,60,0.14);
-    color: var(--signal-bright);
-  }
- 
-  /* ---------- Scan / capture states ---------- */
-  .scan-mic-zone {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 20px 0 26px;
-  }
-  .scan-preview {
-    max-width: 100%;
-    max-height: 220px;
-    border-radius: 14px;
-    border: 1px solid var(--stroke);
-    display: none;
-  }
-  .scan-spinner {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: 3px solid var(--stroke);
-    border-top-color: var(--signal);
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
- 
-  .scan-code-display {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 36px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    color: var(--signal-bright);
-    text-align: center;
-    margin: 6px 0 2px;
-  }
- 
-  .result-banner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 14px;
-    margin-bottom: 18px;
-  }
-  .result-banner.found {
-    background: rgba(95,184,125,0.1);
-    border: 1px solid rgba(95,184,125,0.3);
-  }
-  .result-banner.missing {
-    background: rgba(209,97,79,0.1);
-    border: 1px solid rgba(209,97,79,0.3);
-  }
-  .result-banner-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .result-banner.found .result-banner-icon { background: rgba(95,184,125,0.18); color: var(--ok-bright); }
-  .result-banner.missing .result-banner-icon { background: rgba(209,97,79,0.18); color: var(--miss-bright); }
-  .result-banner-icon svg { width: 20px; height: 20px; }
-  .result-banner-title { font-size: 14.5px; font-weight: 800; }
-  .result-banner.found .result-banner-title { color: var(--ok-bright); }
-  .result-banner.missing .result-banner-title { color: var(--miss-bright); }
-  .result-banner-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
- 
-  /* ---------- Verify result list (multi-code confirm) ---------- */
-  .verify-result-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 48vh;
-    overflow-y: auto;
-    margin-bottom: 16px;
-  }
-  .verify-result-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
-  }
-  .verify-result-item.found {
-    background: rgba(95,184,125,0.1);
-    border: 1px solid rgba(95,184,125,0.3);
-  }
-  .verify-result-item.missing {
-    background: rgba(209,97,79,0.1);
-    border: 1px solid rgba(209,97,79,0.3);
-  }
-  .verify-result-item .vri-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .verify-result-item.found .vri-icon { background: rgba(95,184,125,0.18); color: var(--ok-bright); }
-  .verify-result-item.missing .vri-icon { background: rgba(209,97,79,0.18); color: var(--miss-bright); }
-  .verify-result-item .vri-icon svg { width: 17px; height: 17px; }
-  .verify-result-item .vri-info { flex: 1; min-width: 0; }
-  .verify-result-item .vri-code {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--text);
-  }
-  .verify-result-item .vri-sub { font-size: 11.5px; color: var(--text-faint); margin-top: 1px; }
-  .verify-result-item.found .vri-sub { color: var(--ok-bright); font-weight: 700; }
-  .verify-result-item .vri-remove {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: transparent;
-    border: none;
-    color: var(--text-faint);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .verify-result-item .vri-remove:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-  .verify-result-item .vri-remove svg { width: 16px; height: 16px; }
-  .verify-result-item.removed { opacity: 0.35; }
- 
-  /* ---------- Source picker ---------- */
-  .source-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 6px;
-  }
-  .source-option {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    border-radius: 15px;
-    border: 1px solid var(--stroke);
-    background: var(--bg-card);
-    cursor: pointer;
-    text-align: left;
-    transition: border-color .15s, transform .12s, background .15s;
-  }
-  .source-option:active { transform: scale(0.98); }
-  .source-option-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: rgba(240,168,60,0.1);
-    border: 1px solid rgba(240,168,60,0.25);
-    color: var(--signal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .source-option-icon svg { width: 20px; height: 20px; }
-  .source-option-text { display: flex; flex-direction: column; gap: 2px; }
-  .source-option-title { font-size: 14.5px; font-weight: 700; color: var(--text); }
-  .source-option-sub { font-size: 12.5px; color: var(--text-faint); }
- 
-  /* ---------- Toast ---------- */
-  .toast {
-    position: fixed;
-    left: 50%;
-    bottom: 24px;
-    transform: translate(-50%, 20px);
-    background: var(--bg-card);
-    border: 1px solid var(--stroke);
-    color: var(--text);
-    padding: 12px 18px;
-    border-radius: 14px;
-    font-size: 13.5px;
-    font-weight: 700;
-    z-index: 60;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .2s, transform .2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    max-width: 90%;
-  }
-  .toast.show { opacity: 1; transform: translate(-50%, 0); }
-  .toast .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
-  .toast.danger .dot { background: var(--miss); }
- 
-  ::-webkit-scrollbar { width: 0; height: 0; }
+  ::-webkit-scrollbar{width:0;height:0;}
 </style>
 </head>
 <body>
+<div class="app">
  
-<div id="app">
- 
-  <div class="topbar">
+  <header class="top">
     <div class="brand">
-      <div class="brand-mark">E</div>
-      <div class="brand-text">Етикетки</div>
+      <div class="lamp" id="headerLamp"></div>
+      <h1>Етикетки · Трекер</h1>
+      <span id="clock"></span>
     </div>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <button class="key-badge" id="keyBadge" aria-label="Активний ключ" title="Активний API ключ — натисніть, щоб перемкнути">
-        <span id="keyBadgeNum">1</span>
-      </button>
-      <button class="icon-btn" id="settingsBtn" aria-label="Налаштування">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      </button>
+    <div class="tabs">
+      <button class="tab active" data-tab="orders">Заявки</button>
+      <button class="tab" data-tab="labels">Етикетки</button>
+      <button class="tab" data-tab="settings">Налаштування</button>
     </div>
-  </div>
+  </header>
  
-  <div class="mode-tabs">
-    <button class="mode-tab active" id="tabLabels">
-      <span>Злічення</span>
-      <span class="mt-count" id="countLabels">0</span>
-    </button>
-    <button class="mode-tab" id="tabVerify">
-      <span>Звірка складу</span>
-      <span class="mt-count" id="countVerify">0</span>
-    </button>
-  </div>
+  <main>
+    <!-- ORDERS -->
+    <section id="view-orders" class="active">
+      <div class="toolbar">
+        <button class="btn btn-primary" id="btnAddOrder">+ Додати заявку</button>
+        <button class="btn btn-danger" id="btnClearOrders">Очистити все</button>
+      </div>
+      <div id="ordersList"></div>
+    </section>
  
-  <div class="main-actions">
-    <button class="action-card card-scan" id="scanLabelBtn">
-      <div class="action-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <!-- LABELS -->
+    <section id="view-labels">
+      <div class="toolbar">
+        <button class="btn btn-primary" id="btnAddLabels">+ Додати етикетки</button>
+        <button class="btn btn-danger" id="btnClearLabels">Очистити все</button>
       </div>
-      <div class="action-text">
-        <div class="action-title">Додати зліцензію</div>
-        <div class="action-sub">Фото коду → вибір машини</div>
-      </div>
-    </button>
-    <button class="action-card card-verify" id="verifyLabelBtn">
-      <div class="action-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      </div>
-      <div class="action-text">
-        <div class="action-title">Звірити на складі</div>
-        <div class="action-sub">Фото етикетки на коробці</div>
-      </div>
-    </button>
-  </div>
+      <div id="labelsList"></div>
+    </section>
  
-  <div class="list-section">
-    <div class="list-section-title" id="listTitle">Список зліцензій</div>
-    <div class="entry-list" id="entryList"></div>
-  </div>
- 
+    <!-- SETTINGS -->
+    <section id="view-settings">
+      <div class="field">
+        <label>Додати номер машини</label>
+        <div class="row2">
+          <input type="text" id="newMachineInput" placeholder="напр. J124W">
+          <button class="btn" id="btnAddMachine" style="flex:none;">Додати</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Список машин (<span id="machineCount">0</span>)</label>
+        <div class="machine-wrap settings-list" id="machinesList"></div>
+      </div>
+      <button class="btn btn-danger btn-block" id="btnResetMachines">Скинути список машин до типового</button>
+    </section>
+  </main>
 </div>
  
-<!-- Overlay -->
-<div class="overlay" id="overlay"></div>
- 
-<!-- Source picker (shared by both scan flows) -->
-<div class="sheet" id="sourceSheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title" id="sourceSheetTitle">Додати фото</div>
-  <div class="sheet-subtitle">Оберіть джерело зображення</div>
-  <div class="source-options">
-    <button class="source-option" id="sourceCameraBtn">
-      <span class="source-option-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      </span>
-      <span class="source-option-text">
-        <span class="source-option-title">Зробити фото</span>
-        <span class="source-option-sub">Відкрити камеру</span>
-      </span>
-    </button>
-    <button class="source-option" id="sourceGalleryBtn">
-      <span class="source-option-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      </span>
-      <span class="source-option-text">
-        <span class="source-option-title">Обрати з галереї</span>
-        <span class="source-option-sub">Завантажити наявне фото</span>
-      </span>
-    </button>
-  </div>
-  <div class="sheet-actions">
-    <button class="btn-secondary" id="cancelSource" style="width:100%;">Скасувати</button>
+<!-- ORDER DETAIL / EDIT MODAL -->
+<div class="overlay" id="overlayOrderDetail">
+  <div class="modal">
+    <h2>Заявка<span class="sub" id="odSub"></span></h2>
+    <div class="row2">
+      <div class="field"><label>Дата</label><input type="date" id="odDate"></div>
+      <div class="field"><label>Машина</label><select id="odMachine"></select></div>
+    </div>
+    <div class="field"><label>Numer zlecenia</label><input type="text" id="odNumer"></div>
+    <div class="field"><label>Код етикетки</label><input type="text" id="odLabel"></div>
+    <div class="field"><label>Повний текст заявки</label><textarea id="odFullText"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="odDelete">Видалити</button>
+      <button class="btn btn-ghost" id="odCancel">Закрити</button>
+      <button class="btn btn-primary" id="odSave">Зберегти</button>
+    </div>
   </div>
 </div>
  
-<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
-<input type="file" id="galleryInput" accept="image/*" style="display:none;">
-<input type="file" id="verifyCameraInput" accept="image/*" capture="environment" style="display:none;">
-<input type="file" id="verifyGalleryInput" accept="image/*" multiple style="display:none;">
+<!-- ADD ORDER MODAL -->
+<div class="overlay" id="overlayAddOrder">
+  <div class="modal">
+    <h2>Додати заявку<span class="sub">Текст або фото заявки з комп'ютера/принтера</span></h2>
  
-<!-- Scan label flow: processing -> confirm code -> pick machine -->
-<div class="sheet" id="scanSheet">
-  <div class="sheet-handle"></div>
- 
-  <div id="scanProcessing">
-    <div class="sheet-title">Читаю код...</div>
-    <div class="sheet-subtitle">AI розпізнає шестизначний номер</div>
-    <div class="scan-mic-zone">
-      <img id="scanPreviewImg" class="scan-preview">
-      <div class="scan-spinner"></div>
-    </div>
-  </div>
- 
-  <div id="scanConfirm" style="display:none;">
-    <div class="sheet-title">Перевірте дані</div>
-    <div class="sheet-subtitle">Поправте, якщо розпізнавання помилилось</div>
     <div class="field">
-      <label class="field-label">Код зліцензії</label>
-      <input type="text" inputmode="numeric" class="field-input mono" id="scanCodeInput" placeholder="069526" maxlength="8">
+      <label>Вставити текст заявки</label>
+      <textarea id="aoText" placeholder="Встав текст заявки(-ок) сюди..."></textarea>
     </div>
+ 
+    <div class="divider">або фото</div>
+    <div class="method-grid">
+      <label class="method-btn" for="aoGallery"><span class="ic">🖼️</span>З галереї</label>
+      <label class="method-btn" for="aoCamera"><span class="ic">📷</span>Зробити фото</label>
+    </div>
+    <input type="file" id="aoGallery" accept="image/*" multiple style="display:none;">
+    <input type="file" id="aoCamera" accept="image/*" capture="environment" style="display:none;">
+    <div class="thumbs" id="aoThumbs"></div>
+ 
+    <div class="status-line" id="aoStatus"></div>
+ 
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="aoCancel">Скасувати</button>
+      <button class="btn btn-primary" id="aoRecognize">Розпізнати</button>
+    </div>
+ 
+    <div id="aoReviewWrap" style="display:none;">
+      <div class="divider">Знайдені заявки</div>
+      <div id="aoReviewList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="aoBack">Назад</button>
+        <button class="btn btn-primary" id="aoSaveAll">Зберегти всі</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ADD LABELS MODAL -->
+<div class="overlay" id="overlayAddLabels">
+  <div class="modal">
+    <h2>Додати етикетки<span class="sub">Коди з коробок / список кодів</span></h2>
+ 
     <div class="field">
-      <label class="field-label">Nazwa (виріб, литраж)</label>
-      <input type="text" class="field-input" id="scanNazwaInput" placeholder="Напр. Farba biała 5L">
+      <label>Вставити список кодів</label>
+      <textarea id="alText" placeholder="напр. (G076533) (G063984) ... або E077433, 073042"></textarea>
     </div>
-    <div class="field">
-      <label class="field-label">Numer zlecenia</label>
-      <input type="text" class="field-input mono" id="scanZleceniaInput" placeholder="Напр. ZPR/P /2026/004949" style="font-size:14px;">
-    </div>
-    <div class="sheet-actions">
-      <button class="btn-secondary" id="cancelScanConfirm">Скасувати</button>
-      <button class="btn-primary" id="nextScanConfirm">Далі — вибрати машину</button>
-    </div>
-  </div>
  
-  <div id="scanMachinePick" style="display:none;">
-    <div class="sheet-title">На яку машину?</div>
-    <div class="sheet-subtitle">Код <span class="mono" id="scanMachineCodeLabel" style="color:var(--signal-bright); font-weight:700;"></span> — оберіть виробничу машину</div>
-    <div class="machine-grid" id="machineGrid"></div>
-    <div class="sheet-actions">
-      <button class="btn-secondary" id="backScanMachine">Назад</button>
-      <button class="btn-primary" id="saveScanEntry" disabled>Зберегти</button>
+    <div class="divider">або фото</div>
+    <div class="method-grid">
+      <label class="method-btn" for="alGallery"><span class="ic">🖼️</span>З галереї</label>
+      <label class="method-btn" for="alCamera"><span class="ic">📷</span>Зробити фото</label>
     </div>
-  </div>
+    <input type="file" id="alGallery" accept="image/*" multiple style="display:none;">
+    <input type="file" id="alCamera" accept="image/*" capture="environment" style="display:none;">
+    <div class="thumbs" id="alThumbs"></div>
  
-  <div id="scanError" style="display:none;">
-    <div class="sheet-title">Не вдалося прочитати</div>
-    <div class="sheet-subtitle" id="scanErrorText">Спробуйте ще раз</div>
-    <div class="sheet-actions">
-      <button class="btn-secondary" id="scanErrorClose">Закрити</button>
-      <button class="btn-primary" id="scanErrorRetry">Спробувати ще раз</button>
+    <div class="status-line" id="alStatus"></div>
+ 
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="alCancel">Скасувати</button>
+      <button class="btn btn-primary" id="alRecognize">Розпізнати</button>
+    </div>
+ 
+    <div id="alReviewWrap" style="display:none;">
+      <div class="divider">Знайдені коди</div>
+      <div id="alReviewList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="alBack">Назад</button>
+        <button class="btn btn-primary" id="alSaveAll">Зберегти всі</button>
+      </div>
     </div>
   </div>
 </div>
- 
-<!-- Verify flow: processing -> list of found codes -> confirm -->
-<div class="sheet" id="verifySheet">
-  <div class="sheet-handle"></div>
- 
-  <div id="verifyProcessing">
-    <div class="sheet-title">Звіряю коди...</div>
-    <div class="sheet-subtitle" id="verifyProcessingSub">AI читає етикетки на коробках</div>
-    <div class="scan-mic-zone">
-      <img id="verifyPreviewImg" class="scan-preview">
-      <div class="scan-spinner"></div>
-    </div>
-  </div>
- 
-  <div id="verifyResult" style="display:none;">
-    <div class="sheet-title">Результат звірки</div>
-    <div class="sheet-subtitle" id="verifyResultSubtitle">Знайдено кодів: 0</div>
-    <div class="verify-result-list" id="verifyResultList"></div>
-    <div class="sheet-actions">
-      <button class="btn-secondary" id="cancelVerifyResult">Скасувати</button>
-      <button class="btn-primary" id="saveVerifyEntry">Додати у список звірки</button>
-    </div>
-  </div>
- 
-  <div id="verifyError" style="display:none;">
-    <div class="sheet-title">Не вдалося прочитати</div>
-    <div class="sheet-subtitle" id="verifyErrorText">Спробуйте ще раз</div>
-    <div class="sheet-actions">
-      <button class="btn-secondary" id="verifyErrorClose">Закрити</button>
-      <button class="btn-primary" id="verifyErrorRetry">Спробувати ще раз</button>
-    </div>
-  </div>
-</div>
- 
-<!-- Edit entry sheet -->
-<div class="sheet" id="editSheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title" id="editSheetTitle">Редагувати запис</div>
-  <div class="sheet-subtitle">Змініть код або машину</div>
-  <div class="field">
-    <label class="field-label">Код</label>
-    <input type="text" inputmode="numeric" class="field-input mono" id="editCodeInput" maxlength="8">
-  </div>
-  <div class="field" id="editNazwaField">
-    <label class="field-label">Nazwa (виріб, литраж)</label>
-    <input type="text" class="field-input" id="editNazwaInput" placeholder="Напр. Farba biała 5L">
-  </div>
-  <div class="field" id="editZleceniaField">
-    <label class="field-label">Numer zlecenia</label>
-    <input type="text" class="field-input mono" id="editZleceniaInput" placeholder="Напр. ZPR/P /2026/004949" style="font-size:14px;">
-  </div>
-  <div class="field" id="editMachineField">
-    <label class="field-label">Машина</label>
-    <div class="machine-grid" id="editMachineGrid"></div>
-  </div>
-  <div class="sheet-actions">
-    <button class="btn-secondary" id="cancelEditEntry">Скасувати</button>
-    <button class="btn-primary" id="saveEditEntry">Зберегти зміни</button>
-  </div>
-</div>
- 
-<!-- Settings sheet -->
-<div class="sheet" id="settingsSheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title">Налаштування</div>
-  <div class="sheet-subtitle">Метод розпізнавання, ключі та керування даними</div>
- 
-  <div class="field">
-    <label class="field-label">Метод розпізнавання</label>
-    <div class="method-toggle" id="methodToggle">
-      <button class="method-option" data-method="ocr" id="methodOcrBtn">
-        <span class="method-option-title">OCR</span>
-        <span class="method-option-sub">Швидко · офлайн · без лімітів</span>
-      </button>
-      <button class="method-option" data-method="ai" id="methodAiBtn">
-        <span class="method-option-title">AI (Gemini)</span>
-        <span class="method-option-sub">Точніше · потрібен ключ і мережа</span>
-      </button>
-    </div>
-    <div class="field-hint">OCR розпізнає код надійно, але поле Nazwa доведеться перевірити/ввести вручну — текст на фото не завжди чіткий для офлайн-розпізнавання.</div>
-  </div>
- 
-  <div class="field">
-    <label class="field-label">API ключі (до 5 акаунтів)</label>
-    <div class="field-hint" style="margin-top:0; margin-bottom:10px;">Потрібні лише для методу AI. Заповніть один чи декілька. Активний ключ позначений зіркою. Натисніть «Активувати», щоб перемкнутись вручну, коли на поточному ключі закінчиться ліміт.</div>
-    <div id="apiKeySlots"></div>
-    <div class="field-hint">Отримати безкоштовно: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--signal);">aistudio.google.com/apikey</a> (можна створити декілька ключів з різних Google-акаунтів). Зберігаються лише на цьому пристрої.</div>
-  </div>
- 
-  <div class="field">
-    <label class="field-label">Дані</label>
-    <div class="field-hint">Список зліцензій: <span id="settingsCountLabels" class="mono">0</span> · Список звірки: <span id="settingsCountVerify" class="mono">0</span></div>
-  </div>
- 
-  <div class="sheet-actions">
-    <button class="btn-secondary" id="clearLabelsBtn">Очистити зліцензії</button>
-    <button class="btn-secondary" id="clearVerifyBtn">Очистити звірку</button>
-  </div>
-  <div class="sheet-actions">
-    <button class="btn-primary" id="saveApiKeyBtn" style="width:100%;">Зберегти</button>
-  </div>
-</div>
- 
-<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg">Збережено</span></div>
  
 <script>
-(function() {
-  'use strict';
+(function(){
+  "use strict";
  
-  const STORAGE_KEY = 'label_tracker_state_v1';
+  const DEFAULT_MACHINES = "J119W S104W S101P S103W J118P J117P S107W J115P J122P J116P J120W S111W S108W J121W S99W J126W S110W S105P S114P S112P S97W S96W V93W S109W S100W S98W J124W J123W V91W V95P S126W S63W S106 J130 J127 S128 J129 S125 S113".split(/\s+/);
  
-  const MACHINES = [
-    'J119W','S104W','S101P','S103W','J118P','J117P','S107W','J115P','J122P','J116P',
-    'J120W','S111W','S108W','J121W','S99W','J126W','S110W','S105P','S114P','S112P',
-    'S97W','S96W','V93W','S109W','S100W','S98W','J124W','J123W','V91W','V95P',
-    'S126W','S63W','S106','J130','J127','S128','J129','S125','S113'
-  ];
+  const LS_ORDERS = "flt_orders_v1";
+  const LS_LABELS = "flt_labels_v1";
+  const LS_MACHINES = "flt_machines_v1";
  
-  const defaultState = {
-    apiKeys: ['', '', '', '', ''], // 5 numbered slots, switch manually when one hits rate limit
-    activeKeyIndex: 0,
-    recognitionMethod: 'ocr', // 'ocr' (default: fast, offline, no limits) | 'ai' (Gemini, more accurate)
-    labels: [],  // {id, code, nazwa, zlecenia, machine, ts}
-    verifications: [] // {id, code, found, machine, ts}
+  const state = {
+    orders: JSON.parse(localStorage.getItem(LS_ORDERS) || "[]"),
+    labels: JSON.parse(localStorage.getItem(LS_LABELS) || "[]"),
+    machines: JSON.parse(localStorage.getItem(LS_MACHINES) || "null") || DEFAULT_MACHINES.slice()
   };
  
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { ...defaultState };
-      const parsed = JSON.parse(raw);
-      const merged = { ...defaultState, ...parsed };
-      // Migrate from the old single-key format if present.
-      if (!Array.isArray(merged.apiKeys) || merged.apiKeys.length !== 5) {
-        merged.apiKeys = ['', '', '', '', ''];
-        if (parsed.apiKey) merged.apiKeys[0] = parsed.apiKey;
-        else if (Array.isArray(parsed.apiKeys)) {
-          parsed.apiKeys.slice(0, 5).forEach((k, i) => { merged.apiKeys[i] = k || ''; });
-        }
-      }
-      if (typeof merged.activeKeyIndex !== 'number' || merged.activeKeyIndex < 0 || merged.activeKeyIndex > 4) {
-        merged.activeKeyIndex = 0;
-      }
-      return merged;
-    } catch (e) {
-      return { ...defaultState };
-    }
+  function saveOrders(){ localStorage.setItem(LS_ORDERS, JSON.stringify(state.orders)); }
+  function saveLabels(){ localStorage.setItem(LS_LABELS, JSON.stringify(state.labels)); }
+  function saveMachines(){ localStorage.setItem(LS_MACHINES, JSON.stringify(state.machines)); }
+ 
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+ 
+  function extractDigits(code){
+    if(!code) return null;
+    const m = String(code).match(/\d{6}/);
+    return m ? m[0] : null;
   }
  
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  function fmtDate(iso){
+    if(!iso) return null;
+    const p = iso.split("-");
+    if(p.length!==3) return iso;
+    return `${p[2]}.${p[1]}.${p[0]}`;
   }
  
-  let state = loadState();
- 
-  function activeApiKey() {
-    return (state.apiKeys[state.activeKeyIndex] || '').trim();
+  function guessMachine(code){
+    if(!code) return null;
+    const up = code.toUpperCase();
+    const exact = state.machines.find(m => m.toUpperCase() === up);
+    if(exact) return exact;
+    const starts = state.machines.filter(m => m.toUpperCase().startsWith(up));
+    if(starts.length === 1) return starts[0];
+    return null;
   }
  
-  // If an error looks like a Gemini rate-limit (429), prepend a hint pointing
-  // at which key slot is active, so the person knows to switch to another one.
-  function friendlyErrorText(raw, fallbackMsg) {
-    if (raw === 'code_not_found') return fallbackMsg;
-    if (raw.includes('429') || raw.toLowerCase().includes('quota') || raw.toLowerCase().includes('too_many_requests')) {
-      return `Вичерпано ліміт на ключі №${state.activeKeyIndex + 1}. Перемкніться на інший ключ у налаштуваннях (значок №${state.activeKeyIndex + 1} зверху) і спробуйте ще раз.\n\n${raw}`;
-    }
-    return 'Помилка: ' + raw;
-  }
- 
-  // Re-check every verification entry against the current label list.
-  // Runs after any change to either list, so both stay in sync at all times:
-  // - a verification with no matching label gets found=false, machine=null
-  // - as soon as a matching label appears (by code), it flips to found=true with the machine
-  function reconcileAll() {
-    state.verifications.forEach(v => {
-      const match = state.labels.find(l => l.code === v.code);
-      v.found = !!match;
-      v.machine = match ? match.machine : null;
-    });
-  }
- 
-  let activeMode = 'labels'; // 'labels' | 'verify'
- 
-  // ---------- Helpers ----------
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
- 
-  function fmtDate(ts) {
-    const d = new Date(ts);
-    const datePart = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
-    const timePart = d.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-    return `${datePart} · ${timePart}`;
-  }
- 
-  // Normalize a recognized code: strip any leading letter/symbol prefix (E, G, #),
-  // keep the six digits starting with 0.
-  function normalizeCode(raw) {
-    if (!raw) return '';
-    const digitsOnly = String(raw).replace(/[^0-9]/g, '');
-    // Take the last 6 digits if longer (in case prefix digits leaked through),
-    // or the string itself if exactly 6.
-    if (digitsOnly.length >= 6) {
-      // Prefer a 6-digit run that starts with 0 if present
-      const match = digitsOnly.match(/0\d{5}/);
-      if (match) return match[0];
-      return digitsOnly.slice(-6);
-    }
-    return digitsOnly;
-  }
- 
-  function isValidCode(code) {
-    return /^0\d{5}$/.test(code);
-  }
- 
-  // ---------- Toast ----------
-  let toastTimer;
-  function showToast(msg, danger) {
-    const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toastMsg');
-    toastMsg.textContent = msg;
-    toast.classList.toggle('danger', !!danger);
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
-  }
- 
-  // ---------- Sheets ----------
-  const overlay = document.getElementById('overlay');
-  const sheets = {
-    source: document.getElementById('sourceSheet'),
-    scan: document.getElementById('scanSheet'),
-    verify: document.getElementById('verifySheet'),
-    edit: document.getElementById('editSheet'),
-    settings: document.getElementById('settingsSheet')
-  };
- 
-  function openSheet(key) {
-    closeAllSheets(false);
-    overlay.classList.add('show');
-    sheets[key].classList.add('show');
-  }
- 
-  function closeAllSheets(hideOverlay = true) {
-    Object.values(sheets).forEach(s => s.classList.remove('show'));
-    if (hideOverlay) overlay.classList.remove('show');
-    document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('show'));
-  }
- 
-  overlay.addEventListener('click', closeAllSheets);
- 
-  // ---------- Mode tabs ----------
-  const tabLabels = document.getElementById('tabLabels');
-  const tabVerify = document.getElementById('tabVerify');
-  const listTitle = document.getElementById('listTitle');
- 
-  function setMode(mode) {
-    activeMode = mode;
-    tabLabels.classList.toggle('active', mode === 'labels');
-    tabVerify.classList.toggle('active', mode === 'verify');
-    listTitle.textContent = mode === 'labels' ? 'Список зліцензій' : 'Список звірки складу';
-    renderList();
-  }
- 
-  tabLabels.addEventListener('click', () => setMode('labels'));
-  tabVerify.addEventListener('click', () => setMode('verify'));
- 
-  // ---------- Rendering counts + list ----------
-  function renderCounts() {
-    document.getElementById('countLabels').textContent = state.labels.length;
-    document.getElementById('countVerify').textContent = state.verifications.length;
-    document.getElementById('settingsCountLabels').textContent = state.labels.length;
-    document.getElementById('settingsCountVerify').textContent = state.verifications.length;
-    document.getElementById('keyBadgeNum').textContent = state.activeKeyIndex + 1;
-  }
- 
-  document.getElementById('keyBadge').addEventListener('click', openSettings);
- 
-  function renderList() {
-    const listEl = document.getElementById('entryList');
-    const items = activeMode === 'labels' ? state.labels : state.verifications;
- 
-    if (items.length === 0) {
-      listEl.innerHTML = `
-        <div class="entry-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 10px; display:block;"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          ${activeMode === 'labels' ? 'Поки що немає зліцензій.<br>Натисніть «Додати зліцензію», щоб почати.' : 'Поки що немає звірених етикеток.<br>Натисніть «Звірити на складі», щоб почати.'}
-        </div>`;
-      return;
-    }
- 
-    listEl.innerHTML = '';
-    items.forEach(entry => {
-      const row = document.createElement('div');
-      row.className = 'entry-card';
-      row.dataset.id = entry.id;
- 
-      let badgeHtml, metaHtml, verifiedDot = '';
-      if (activeMode === 'labels') {
-        const isVerified = state.verifications.some(v => v.code === entry.code && v.found);
-        badgeHtml = `<div class="entry-badge machine">${escapeHtml(entry.machine)}</div>`;
-        if (isVerified) {
-          verifiedDot = '<span class="verified-dot" title="Знайдено на складі"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>';
-        }
-        const nazwaHtml = entry.nazwa ? `${escapeHtml(entry.nazwa)} · ` : '';
-        const zleceniaHtml = entry.zlecenia ? `<div class="entry-zlecenia mono">${escapeHtml(entry.zlecenia)}</div>` : '';
-        metaHtml = `${nazwaHtml}<span class="machine-tag">${escapeHtml(entry.machine)}</span> · ${fmtDate(entry.ts)}${zleceniaHtml}`;
-      } else {
-        if (entry.found) {
-          badgeHtml = `<div class="entry-badge found"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>`;
-          metaHtml = `<span class="found-tag">${escapeHtml(entry.machine)}</span> · ${fmtDate(entry.ts)}`;
-        } else {
-          badgeHtml = `<div class="entry-badge missing"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>`;
-          metaHtml = `<span class="missing-tag">без зліцензії</span> · ${fmtDate(entry.ts)}`;
-        }
-      }
- 
-      row.innerHTML = `
-        ${badgeHtml}
-        <div class="entry-info">
-          <div class="entry-code mono">${escapeHtml(entry.code)}${verifiedDot}</div>
-          <div class="entry-meta">${metaHtml}</div>
-        </div>
-        <button class="entry-menu-btn" aria-label="Дії">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
-        </button>
-        <div class="item-menu">
-          ${activeMode === 'labels' ? '<button class="edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Редагувати</button>' : ''}
-          <button class="delete-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>Видалити</button>
-        </div>
-      `;
-      listEl.appendChild(row);
-    });
-  }
- 
-  document.getElementById('entryList').addEventListener('click', (e) => {
-    const menuBtn = e.target.closest('.entry-menu-btn');
-    const row = e.target.closest('.entry-card');
-    if (!row) return;
-    const id = row.dataset.id;
- 
-    if (menuBtn) {
-      const menu = row.querySelector('.item-menu');
-      const isOpen = menu.classList.contains('show');
-      document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('show'));
-      if (!isOpen) menu.classList.add('show');
-      return;
-    }
- 
-    if (e.target.closest('.edit-btn')) {
-      openEditEntry(id);
-      return;
-    }
- 
-    if (e.target.closest('.delete-btn')) {
-      deleteEntry(id);
-      return;
-    }
-  });
- 
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.entry-menu-btn') && !e.target.closest('.item-menu')) {
-      document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('show'));
-    }
-  });
- 
-  function deleteEntry(id) {
-    if (activeMode === 'labels') {
-      state.labels = state.labels.filter(e => e.id !== id);
-    } else {
-      state.verifications = state.verifications.filter(e => e.id !== id);
-    }
-    reconcileAll();
-    saveState();
-    renderCounts();
-    renderList();
-    showToast('Запис видалено', true);
-  }
- 
-  // ---------- Edit entry (labels only get machine + nazwa + zlecenia editing) ----------
-  let editingId = null;
-  const editCodeInput = document.getElementById('editCodeInput');
-  const editNazwaField = document.getElementById('editNazwaField');
-  const editNazwaInput = document.getElementById('editNazwaInput');
-  const editZleceniaField = document.getElementById('editZleceniaField');
-  const editZleceniaInput = document.getElementById('editZleceniaInput');
-  const editMachineField = document.getElementById('editMachineField');
-  const editMachineGrid = document.getElementById('editMachineGrid');
-  let editSelectedMachine = null;
- 
-  function openEditEntry(id) {
-    const list = activeMode === 'labels' ? state.labels : state.verifications;
-    const entry = list.find(e => e.id === id);
-    if (!entry) return;
-    editingId = id;
-    editCodeInput.value = entry.code;
-    document.getElementById('editSheetTitle').textContent =
-      activeMode === 'labels' ? 'Редагувати зліцензію' : 'Редагувати запис звірки';
- 
-    if (activeMode === 'labels') {
-      editNazwaField.style.display = 'block';
-      editNazwaInput.value = entry.nazwa || '';
-      editZleceniaField.style.display = 'block';
-      editZleceniaInput.value = entry.zlecenia || '';
-      editMachineField.style.display = 'block';
-      editSelectedMachine = entry.machine;
-      bindEditMachineGrid();
-    } else {
-      editNazwaField.style.display = 'none';
-      editZleceniaField.style.display = 'none';
-      editMachineField.style.display = 'none';
-      editSelectedMachine = null;
-    }
- 
-    openSheet('edit');
-    setTimeout(() => editCodeInput.focus(), 320);
-  }
- 
-  function bindEditMachineGrid() {
-    editMachineGrid.innerHTML = '';
-    MACHINES.forEach(m => {
-      const chip = document.createElement('button');
-      chip.className = 'machine-chip' + (m === editSelectedMachine ? ' selected' : '');
-      chip.textContent = m;
-      chip.addEventListener('click', () => {
-        editSelectedMachine = m;
-        Array.from(editMachineGrid.children).forEach(c => {
-          c.classList.toggle('selected', c.textContent === editSelectedMachine);
-        });
-      });
-      editMachineGrid.appendChild(chip);
-    });
-  }
- 
-  document.getElementById('cancelEditEntry').addEventListener('click', closeAllSheets);
- 
-  document.getElementById('saveEditEntry').addEventListener('click', () => {
-    const list = activeMode === 'labels' ? state.labels : state.verifications;
-    const entry = list.find(e => e.id === editingId);
-    if (!entry) return;
- 
-    const rawCode = editCodeInput.value.trim();
-    const code = normalizeCode(rawCode);
-    if (!isValidCode(code)) { showToast('Код має бути 6 цифр, починається з 0', true); return; }
- 
-    entry.code = code;
-    if (activeMode === 'labels') {
-      if (!editSelectedMachine) { showToast('Оберіть машину', true); return; }
-      entry.machine = editSelectedMachine;
-      entry.nazwa = editNazwaInput.value.trim();
-      entry.zlecenia = editZleceniaInput.value.trim();
-    }
- 
-    reconcileAll();
-    saveState();
-    renderCounts();
-    renderList();
-    closeAllSheets();
-    showToast('Зміни збережено');
-  });
- 
-  // ---------- Source picker (shared) ----------
-  let pendingFlow = null; // 'scan' | 'verify'
- 
-  document.getElementById('scanLabelBtn').addEventListener('click', () => {
-    if (recognitionMethod() === 'ai' && !activeApiKey()) {
-      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перемкніться на OCR`, true);
-      openSettings();
-      return;
-    }
-    pendingFlow = 'scan';
-    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
-    openSheet('source');
-  });
- 
-  document.getElementById('verifyLabelBtn').addEventListener('click', () => {
-    if (recognitionMethod() === 'ai' && !activeApiKey()) {
-      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перемкніться на OCR`, true);
-      openSettings();
-      return;
-    }
-    pendingFlow = 'verify';
-    document.getElementById('sourceSheetTitle').textContent = 'Фото етикеток на коробках';
-    openSheet('source');
-  });
- 
-  document.getElementById('cancelSource').addEventListener('click', closeAllSheets);
- 
-  document.getElementById('sourceCameraBtn').addEventListener('click', () => {
-    closeAllSheets();
-    const input = document.getElementById(pendingFlow === 'verify' ? 'verifyCameraInput' : 'cameraInput');
-    input.value = '';
-    input.click();
-  });
-  document.getElementById('sourceGalleryBtn').addEventListener('click', () => {
-    closeAllSheets();
-    const input = document.getElementById(pendingFlow === 'verify' ? 'verifyGalleryInput' : 'galleryInput');
-    input.value = '';
-    input.click();
-  });
- 
-  document.getElementById('cameraInput').addEventListener('change', handleScanFileSelected);
-  document.getElementById('galleryInput').addEventListener('change', handleScanFileSelected);
-  document.getElementById('verifyCameraInput').addEventListener('change', handleVerifyFilesSelected);
-  document.getElementById('verifyGalleryInput').addEventListener('change', handleVerifyFilesSelected);
- 
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result;
-        const match = /^data:(.+);base64,(.*)$/.exec(result);
-        if (!match) { reject(new Error('read failed')); return; }
-        resolve({ mimeType: match[1], base64: match[2] });
-      };
-      reader.onerror = () => reject(new Error('read failed'));
-      reader.readAsDataURL(file);
-    });
-  }
- 
-  async function handleScanFileSelected(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    await runScanFlow(file);
-  }
- 
-  async function handleVerifyFilesSelected(e) {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    if (files.length === 0) return;
-    await runVerifyFlow(files);
-  }
- 
-  // ---------- Gemini call: single code + nazwa + numer zlecenia (used for scanning a license/zliczenie) ----------
-  async function recognizeCodeWithGemini(base64Image, mimeType, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
-    const prompt = `На цьому фото є документ (zliczenie) з ідентифікаційним кодом виробу, назвою продукції та номером замовлення. Код складається рівно з шести цифр і завжди починається з цифри 0 (наприклад 069526). Перед нулем іноді може стояти літера (E або G) або символ #, або нічого не стояти — це не частина коду, ігноруй такий префікс.
-Також знайди назву (nazwa) виробу — зазвичай це назва продукту та його литраж/обсяг (наприклад "Farba biała 5L").
-Також знайди "Numer zlecenia" — номер замовлення, зазвичай у форматі на кшталт "ZPR/P /2026/004949" (літери, слеші, рік, номер). Він часто підписаний саме як "Numer zlecenia:" на документі.
-Поверни ЛИШЕ JSON, без жодного іншого тексту, у форматі:
-{"code": "069526", "nazwa": "Farba biała 5L", "zlecenia": "ZPR/P /2026/004949"}
-Якщо код не вдалося знайти або він нечіткий, поверни {"code": null, "nazwa": null, "zlecenia": null}.
-Якщо назву чи номер замовлення не вдалося знайти, залиш відповідне поле null, але поверни код, якщо він розпізнаний.`;
- 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        model: 'gemini-3.5-flash',
-        input: [
-          { type: 'image', mime_type: mimeType, data: base64Image },
-          { type: 'text', text: prompt }
-        ],
-        response_format: { type: 'text', mime_type: 'application/json' }
-      })
-    });
- 
-    if (!response.ok) {
-      const errBody = await response.text().catch(() => '');
-      throw new Error('Gemini API error: ' + response.status + ' ' + errBody);
-    }
- 
-    const data = await response.json();
-    const rawText = extractGeminiText(data);
-    if (!rawText) throw new Error('empty response: ' + JSON.stringify(data).slice(0, 300));
- 
-    const cleaned = rawText.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    if (!parsed.code) throw new Error('code_not_found');
-    return {
-      code: normalizeCode(parsed.code),
-      nazwa: parsed.nazwa ? String(parsed.nazwa).trim() : '',
-      zlecenia: parsed.zlecenia ? String(parsed.zlecenia).trim() : ''
-    };
-  }
- 
-  // ---------- Gemini call: multiple codes from one photo (used for warehouse box labels) ----------
-  async function recognizeMultipleCodesWithGemini(base64Image, mimeType, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
-    const prompt = `На цьому фото можуть бути одна або декілька коробок з етикетками. Кожна етикетка містить ідентифікаційний код з шести цифр, що завжди починається з цифри 0 (наприклад 069526). Перед нулем іноді може стояти літера (E або G) або символ #, або нічого не стояти — це не частина коду, ігноруй такий префікс.
-Знайди УСІ такі шестизначні коди, які є на фото (на всіх видимих коробках/етикетках).
-Поверни ЛИШЕ JSON-масив, без жодного іншого тексту, у форматі:
-["069526", "071234"]
-Якщо жодного коду не знайдено, поверни [].`;
- 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey
-      },
-      body: JSON.stringify({
-        model: 'gemini-3.5-flash',
-        input: [
-          { type: 'image', mime_type: mimeType, data: base64Image },
-          { type: 'text', text: prompt }
-        ],
-        response_format: { type: 'text', mime_type: 'application/json' }
-      })
-    });
- 
-    if (!response.ok) {
-      const errBody = await response.text().catch(() => '');
-      throw new Error('Gemini API error: ' + response.status + ' ' + errBody);
-    }
- 
-    const data = await response.json();
-    const rawText = extractGeminiText(data);
-    if (!rawText) throw new Error('empty response: ' + JSON.stringify(data).slice(0, 300));
- 
-    const cleaned = rawText.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    if (!Array.isArray(parsed)) throw new Error('unexpected format');
- 
-    return parsed
-      .map(c => normalizeCode(c))
-      .filter(c => isValidCode(c));
-  }
- 
-  // Shared helper: extract the text payload from a Gemini Interactions API response.
-  function extractGeminiText(data) {
-    let rawText = null;
-    if (Array.isArray(data.outputs)) {
-      const textOut = data.outputs.find(o => o.type === 'text');
-      if (textOut) rawText = textOut.text;
-    }
-    if (!rawText && Array.isArray(data.steps)) {
-      for (const step of data.steps) {
-        if (step.type === 'model_output' && Array.isArray(step.content)) {
-          const textBlock = step.content.find(c => c.type === 'text');
-          if (textBlock) { rawText = textBlock.text; break; }
-        }
-      }
-    }
-    return rawText;
-  }
- 
-  // ---------- OCR (Tesseract.js) — offline recognition, no API key or rate limits ----------
-  // Slower per-call to warm up (loads the OCR engine on first use) but has no daily/minute
-  // request quota and works without any network call once the engine is cached.
-  let tesseractWorkerPromise = null;
-  function getTesseractWorker() {
-    if (!tesseractWorkerPromise) {
-      tesseractWorkerPromise = Tesseract.createWorker('pol+eng');
-    }
-    return tesseractWorkerPromise;
-  }
- 
-  async function ocrImageToText(file) {
-    const worker = await getTesseractWorker();
-    const { data } = await worker.recognize(file);
-    return data.text || '';
-  }
- 
-  // Find every run of digits in the OCR text that, once any letter/#-prefix is stripped,
-  // yields a valid 6-digit code starting with 0. Returns unique codes in order found.
-  // Find every run of digits in the OCR text that, once any letter/#-prefix is stripped,
-  // yields a valid 6-digit code starting with 0. Excludes matches embedded inside a longer
-  // slash-delimited number (like a "Numer zlecenia" value), since those aren't the label code.
-  function extractCodesFromText(text) {
-    const codes = [];
-    const seen = new Set();
-    const tokenRegex = /(?<![\/\d])[EG#]?\s?0\d{5}(?![\d\/])/g;
-    let match;
-    while ((match = tokenRegex.exec(text)) !== null) {
-      const code = normalizeCode(match[0]);
-      if (isValidCode(code) && !seen.has(code)) {
-        seen.add(code);
-        codes.push(code);
-      }
-    }
-    return codes;
-  }
- 
-  // Try to pull "Numer zlecenia: ZPR/P /2026/004949" style values out of raw OCR text.
-  function extractZleceniaFromText(text) {
-    const zleceniaToken = /[A-Za-z]{2,5}\/[A-Za-z0-9]{0,4}\s?\/?\s?20\d{2}\/\d{3,8}/;
-    const labelMatch = text.match(/Numer\s*zlecenia\s*[:\-]?\s*([^\n\r]{4,50})/i);
-    if (labelMatch) {
-      const tokenMatch = labelMatch[1].match(zleceniaToken);
-      if (tokenMatch) return tokenMatch[0].replace(/\s+/g, ' ').trim();
-      return labelMatch[1].trim().replace(/\s+/g, ' ');
-    }
-    const bareMatch = text.match(zleceniaToken);
-    return bareMatch ? bareMatch[0].replace(/\s+/g, ' ').trim() : '';
-  }
- 
-  async function recognizeCodeWithOCR(file) {
-    const text = await ocrImageToText(file);
-    const codes = extractCodesFromText(text);
-    if (codes.length === 0) throw new Error('code_not_found');
-    return {
-      code: codes[0],
-      nazwa: '', // OCR reliably finds the numeric code, but free-text nazwa needs manual entry
-      zlecenia: extractZleceniaFromText(text)
-    };
-  }
- 
-  async function recognizeMultipleCodesWithOCR(file) {
-    const text = await ocrImageToText(file);
-    const codes = extractCodesFromText(text);
-    if (codes.length === 0) throw new Error('code_not_found');
-    return codes;
-  }
- 
-  // ---------- Recognition method switch (OCR default: instant, free, no rate limits) ----------
-  function recognitionMethod() {
-    return state.recognitionMethod === 'ai' ? 'ai' : 'ocr';
-  }
- 
-  async function recognizeSingle(file, base64, mimeType, apiKey) {
-    if (recognitionMethod() === 'ai') {
-      return await recognizeCodeWithGemini(base64, mimeType, apiKey);
-    }
-    return await recognizeCodeWithOCR(file);
-  }
- 
-  async function recognizeMultiple(file, base64, mimeType, apiKey) {
-    if (recognitionMethod() === 'ai') {
-      return await recognizeMultipleCodesWithGemini(base64, mimeType, apiKey);
-    }
-    return await recognizeMultipleCodesWithOCR(file);
-  }
- 
-  // ---------- Scan (add label) flow ----------
-  const scanStates = {
-    processing: document.getElementById('scanProcessing'),
-    confirm: document.getElementById('scanConfirm'),
-    machinePick: document.getElementById('scanMachinePick'),
-    error: document.getElementById('scanError')
-  };
-  function showScanState(key) {
-    Object.values(scanStates).forEach(el => el.style.display = 'none');
-    scanStates[key].style.display = 'block';
-  }
- 
-  let lastScanFile = null;
-  let scanSelectedMachine = null;
- 
-  async function runScanFlow(file) {
-    lastScanFile = file;
-    showScanState('processing');
-    openSheet('scan');
- 
-    try {
-      const { base64, mimeType } = await fileToBase64(file);
-      const previewImg = document.getElementById('scanPreviewImg');
-      previewImg.src = 'data:' + mimeType + ';base64,' + base64;
-      previewImg.style.display = 'block';
- 
-      const result = await recognizeSingle(file, base64, mimeType, activeApiKey());
-      document.getElementById('scanCodeInput').value = result.code;
-      document.getElementById('scanNazwaInput').value = result.nazwa || '';
-      document.getElementById('scanZleceniaInput').value = result.zlecenia || '';
-      showScanState('confirm');
-    } catch (err) {
-      showScanState('error');
-      const raw = (err && err.message) ? err.message : String(err);
-      document.getElementById('scanErrorText').textContent = friendlyErrorText(
-        raw,
-        'Не вдалося знайти шестизначний код на фото. Спробуйте зробити чіткіше фото коду.'
-      );
-    }
-  }
- 
-  document.getElementById('cancelScanConfirm').addEventListener('click', closeAllSheets);
-  document.getElementById('scanErrorClose').addEventListener('click', closeAllSheets);
-  document.getElementById('scanErrorRetry').addEventListener('click', () => {
-    pendingFlow = 'scan';
-    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
-    openSheet('source');
-  });
- 
-  document.getElementById('nextScanConfirm').addEventListener('click', () => {
-    const rawCode = document.getElementById('scanCodeInput').value.trim();
-    const code = normalizeCode(rawCode);
-    if (!isValidCode(code)) { showToast('Код має бути 6 цифр, починається з 0', true); return; }
-    document.getElementById('scanCodeInput').value = code;
-    document.getElementById('scanMachineCodeLabel').textContent = code;
-    scanSelectedMachine = null;
-    buildScanMachineGrid();
-    showScanState('machinePick');
-  });
- 
-  function buildScanMachineGrid() {
-    const grid = document.getElementById('machineGrid');
-    grid.innerHTML = '';
-    const saveBtn = document.getElementById('saveScanEntry');
-    saveBtn.disabled = true;
-    MACHINES.forEach(m => {
-      const chip = document.createElement('button');
-      chip.className = 'machine-chip';
-      chip.textContent = m;
-      chip.addEventListener('click', () => {
-        scanSelectedMachine = m;
-        Array.from(grid.children).forEach(c => c.classList.toggle('selected', c.textContent === m));
-        saveBtn.disabled = false;
-      });
-      grid.appendChild(chip);
-    });
-  }
- 
-  document.getElementById('backScanMachine').addEventListener('click', () => showScanState('confirm'));
- 
-  document.getElementById('saveScanEntry').addEventListener('click', () => {
-    if (!scanSelectedMachine) return;
-    const code = document.getElementById('scanCodeInput').value.trim();
-    const nazwa = document.getElementById('scanNazwaInput').value.trim();
-    const zlecenia = document.getElementById('scanZleceniaInput').value.trim();
-    state.labels.unshift({
-      id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      code,
-      nazwa,
-      zlecenia,
-      machine: scanSelectedMachine,
-      ts: Date.now()
-    });
-    reconcileAll();
-    saveState();
-    renderCounts();
-    renderList();
-    closeAllSheets();
-    showToast(`Додано: ${code} → ${scanSelectedMachine}`);
-  });
- 
-  // ---------- Verify (warehouse check) flow ----------
-  const verifyStates = {
-    processing: document.getElementById('verifyProcessing'),
-    result: document.getElementById('verifyResult'),
-    error: document.getElementById('verifyError')
-  };
-  function showVerifyState(key) {
-    Object.values(verifyStates).forEach(el => el.style.display = 'none');
-    verifyStates[key].style.display = 'block';
-  }
- 
-  let pendingVerifyResults = []; // [{code, found, machine, removed}]
- 
-  async function runVerifyFlow(files) {
-    showVerifyState('processing');
-    openSheet('verify');
- 
-    const previewImg = document.getElementById('verifyPreviewImg');
-    previewImg.style.display = 'none';
-    if (files.length === 1) {
-      // Show a preview only for a single photo — multiple photos would need a carousel,
-      // and the confirm list below is what matters for verification anyway.
-      fileToBase64(files[0]).then(({ base64, mimeType }) => {
-        previewImg.src = 'data:' + mimeType + ';base64,' + base64;
-        previewImg.style.display = 'block';
-      }).catch(() => {});
-    }
- 
-    const subEl = document.getElementById('verifyProcessingSub');
-    const methodLabel = recognitionMethod() === 'ai' ? 'AI' : 'OCR';
-    subEl.textContent = files.length > 1
-      ? `${methodLabel} читає етикетки на ${files.length} фото...`
-      : `${methodLabel} читає етикетки на коробках`;
- 
-    try {
-      // Collect codes from every photo, then dedupe across the whole batch —
-      // the same box/code photographed from a different angle should count once.
-      const seenCodes = new Set();
-      const allCodes = [];
- 
-      for (const file of files) {
-        const { base64, mimeType } = await fileToBase64(file);
-        const codes = await recognizeMultiple(file, base64, mimeType, activeApiKey());
-        codes.forEach(code => {
-          if (!seenCodes.has(code)) {
-            seenCodes.add(code);
-            allCodes.push(code);
+  // ---------- MATCHING ----------
+  function recompute(){
+    state.labels.forEach(l => { l.matchedMachines = []; });
+    state.orders.forEach(o => {
+      const d = extractDigits(o.labelCode);
+      o.matched = false;
+      if(d){
+        state.labels.forEach(l => {
+          if(l.digits === d){
+            o.matched = true;
+            if(o.machine && !l.matchedMachines.includes(o.machine)) l.matchedMachines.push(o.machine);
           }
         });
       }
- 
-      if (allCodes.length === 0) throw new Error('code_not_found');
- 
-      pendingVerifyResults = allCodes.map(code => {
-        const match = state.labels.find(l => l.code === code);
-        return {
-          code,
-          found: !!match,
-          machine: match ? match.machine : null,
-          removed: false
-        };
-      });
- 
-      renderVerifyResultList();
-      showVerifyState('result');
-    } catch (err) {
-      showVerifyState('error');
-      const raw = (err && err.message) ? err.message : String(err);
-      document.getElementById('verifyErrorText').textContent = friendlyErrorText(
-        raw,
-        'Не вдалося знайти жодного шестизначного коду на фото. Спробуйте зробити чіткіше фото етикеток.'
-      );
-    }
+    });
+    saveOrders(); saveLabels();
   }
  
-  function renderVerifyResultList() {
-    const listEl = document.getElementById('verifyResultList');
-    const activeCount = pendingVerifyResults.filter(r => !r.removed).length;
-    document.getElementById('verifyResultSubtitle').textContent = `Знайдено кодів: ${activeCount}`;
+  // ---------- PARSERS ----------
+  function parseOrdersText(text){
+    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+    const dateRe = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+    const machineRe = /^([A-Za-z])\s*-?\s*(\d{2,4})\s*\+?\s*IML\b/i;
+    const blocks = [];
+    let current = null;
+    let pendingDate = null, pendingMachine = null;
  
-    listEl.innerHTML = '';
-    pendingVerifyResults.forEach((r, idx) => {
-      const item = document.createElement('div');
-      item.className = 'verify-result-item ' + (r.found ? 'found' : 'missing') + (r.removed ? ' removed' : '');
-      item.dataset.idx = idx;
+    for(const line of lines){
+      const dm = line.match(dateRe);
+      if(dm){ pendingDate = `${dm[3]}-${dm[2]}-${dm[1]}`; continue; }
+      const mm = line.match(machineRe);
+      if(mm){ pendingMachine = (mm[1] + mm[2]).toUpperCase(); continue; }
+      if(/^Numer\s+zlecenia/i.test(line)){
+        if(current) blocks.push(current);
+        current = { date: pendingDate, machine: pendingMachine, numerZlecenia:"", labelCode:"", fullTextLines:[] };
+        pendingDate = null; pendingMachine = null;
+      }
+      if(current){
+        current.fullTextLines.push(line);
+        const nz = line.match(/^Numer\s+zlecenia:\s*(.+)$/i);
+        if(nz) current.numerZlecenia = nz[1].trim();
+        const lc = line.match(/^Uwagi\s+do\s+zam[oó0]wienia:\s*(.+)$/i);
+        if(lc) current.labelCode = lc[1].trim();
+      }
+    }
+    if(current) blocks.push(current);
  
-      const iconSvg = r.found
-        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
-        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+    return blocks.map(b => ({
+      date: b.date,
+      machine: b.machine || guessMachine(b.machine) || (b.machine ? guessMachine(b.machine) : null),
+      numerZlecenia: b.numerZlecenia,
+      labelCode: (b.labelCode && b.labelCode !== "-") ? b.labelCode : "",
+      fullText: b.fullTextLines.join("\n")
+    })).map(b => ({...b, machine: b.machine ? (guessMachine(b.machine) || b.machine) : null}));
+  }
  
-      item.innerHTML = `
-        <div class="vri-icon">${iconSvg}</div>
-        <div class="vri-info">
-          <div class="vri-code mono">${r.code}</div>
-          <div class="vri-sub">${r.found ? 'Машина ' + escapeHtml(r.machine) : 'без зліцензії'}</div>
-        </div>
-        <button class="vri-remove" aria-label="Прибрати">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
-        </button>
-      `;
-      listEl.appendChild(item);
+  function parseLabelCodes(text){
+    const matches = text.match(/[A-Za-z#]?\s*\(?\s*\d{6}\s*\)?/g) || [];
+    const out = [];
+    const seenDigits = new Set();
+    for(const m of matches){
+      const digitsMatch = m.match(/\d{6}/);
+      if(!digitsMatch) continue;
+      const digits = digitsMatch[0];
+      if(seenDigits.has(digits)) continue;
+      seenDigits.add(digits);
+      const prefixMatch = m.match(/^[A-Za-z#]/);
+      const prefix = prefixMatch ? prefixMatch[0].toUpperCase() : "";
+      out.push({ raw: prefix + digits, digits });
+    }
+    return out;
+  }
+ 
+  // ---------- OCR ----------
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result.split(",")[1]);
+      r.onerror = () => reject(new Error("read failed"));
+      r.readAsDataURL(file);
     });
   }
  
-  document.getElementById('verifyResultList').addEventListener('click', (e) => {
-    const btn = e.target.closest('.vri-remove');
-    if (!btn) return;
-    const item = e.target.closest('.verify-result-item');
-    const idx = Number(item.dataset.idx);
-    pendingVerifyResults[idx].removed = !pendingVerifyResults[idx].removed;
-    renderVerifyResultList();
-  });
- 
-  document.getElementById('cancelVerifyResult').addEventListener('click', closeAllSheets);
-  document.getElementById('verifyErrorClose').addEventListener('click', closeAllSheets);
-  document.getElementById('verifyErrorRetry').addEventListener('click', () => {
-    pendingFlow = 'verify';
-    document.getElementById('sourceSheetTitle').textContent = 'Фото етикеток на коробках';
-    openSheet('source');
-  });
- 
-  document.getElementById('saveVerifyEntry').addEventListener('click', () => {
-    const toSave = pendingVerifyResults.filter(r => !r.removed);
-    if (toSave.length === 0) { showToast('Немає кодів для збереження', true); return; }
- 
-    // Dedupe against codes already present in the warehouse-check list —
-    // the list of scanned labels on the floor must never contain the same code twice.
-    const existingCodes = new Set(state.verifications.map(v => v.code));
-    const now = Date.now();
-    let addedCount = 0;
-    let skippedCount = 0;
- 
-    toSave.forEach((r, idx) => {
-      if (existingCodes.has(r.code)) { skippedCount++; return; }
-      existingCodes.add(r.code);
-      state.verifications.unshift({
-        id: now + '-' + idx + '-' + Math.random().toString(36).slice(2, 6),
-        code: r.code,
-        found: r.found,
-        machine: r.machine,
-        ts: now
-      });
-      addedCount++;
+  async function ocrImage(file){
+    const base64 = await fileToBase64(file);
+    const mediaType = file.type || "image/jpeg";
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
+            { type: "text", text: "Transcribe ALL text visible in this image exactly as shown, preserving the original line breaks and order. Keep Polish, Ukrainian and Russian text as-is, do not translate. Do not add commentary, headers, quotes or explanation. Output ONLY the raw transcribed text." }
+          ]
+        }]
+      })
     });
- 
-    reconcileAll();
-    saveState();
-    renderCounts();
-    renderList();
-    closeAllSheets();
- 
-    if (addedCount === 0) {
-      showToast('Усі ці коди вже є у списку звірки', true);
-    } else {
-      const foundCount = toSave.filter(r => r.found).length;
-      let msg = `Додано ${addedCount} код(и)`;
-      if (skippedCount > 0) msg += `, пропущено ${skippedCount} (вже в списку)`;
-      showToast(msg, foundCount < addedCount);
-    }
- 
-    pendingVerifyResults = [];
-  });
- 
-  // ---------- Settings ----------
-  const apiKeySlotsEl = document.getElementById('apiKeySlots');
- 
-  function renderMethodToggle() {
-    const method = recognitionMethod();
-    document.getElementById('methodOcrBtn').classList.toggle('selected', method === 'ocr');
-    document.getElementById('methodAiBtn').classList.toggle('selected', method === 'ai');
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error.message || "API error");
+    return (data.content || []).map(b => b.text || "").join("\n");
   }
  
-  document.getElementById('methodToggle').addEventListener('click', (e) => {
-    const btn = e.target.closest('.method-option');
-    if (!btn) return;
-    state.recognitionMethod = btn.dataset.method;
-    saveState();
-    renderMethodToggle();
-    showToast(state.recognitionMethod === 'ocr' ? 'Метод: OCR (офлайн)' : 'Метод: AI (Gemini)');
-  });
- 
-  function renderApiKeySlots() {
-    apiKeySlotsEl.innerHTML = '';
-    for (let i = 0; i < 5; i++) {
-      const isActive = i === state.activeKeyIndex;
-      const row = document.createElement('div');
-      row.className = 'key-slot' + (isActive ? ' active' : '');
-      row.innerHTML = `
-        <div class="key-slot-num">${i + 1}${isActive ? ' ★' : ''}</div>
-        <input type="password" class="key-slot-input" data-slot="${i}" placeholder="Ключ №${i + 1} — AIzaSy..." value="${escapeHtml(state.apiKeys[i] || '')}">
-        <button class="key-slot-activate" data-activate="${i}" aria-label="Активувати ключ ${i + 1}" title="Активувати цей ключ">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-        </button>
-      `;
-      apiKeySlotsEl.appendChild(row);
-    }
-  }
- 
-  apiKeySlotsEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('.key-slot-activate');
-    if (!btn) return;
-    const idx = Number(btn.dataset.activate);
-    // Persist whatever is currently typed in the inputs before switching,
-    // so switching doesn't discard unsaved edits.
-    persistSlotInputsToState();
-    if (!state.apiKeys[idx]) {
-      showToast(`Спочатку введіть ключ у слот №${idx + 1}`, true);
+  // ---------- RENDER: ORDERS ----------
+  const ordersList = document.getElementById("ordersList");
+  function renderOrders(){
+    const arr = state.orders.slice().sort((a,b) => {
+      const da = a.date || "9999-99-99", db = b.date || "9999-99-99";
+      return da.localeCompare(db);
+    });
+    if(arr.length === 0){
+      ordersList.innerHTML = `<div class="empty">Немає заявок.<br>Натисніть «Додати заявку», щоб додати текст або фото.</div>`;
       return;
     }
-    state.activeKeyIndex = idx;
-    saveState();
-    renderApiKeySlots();
-    showToast(`Активовано ключ №${idx + 1}`);
+    ordersList.innerHTML = arr.map(o => {
+      const missing = !o.date || !o.machine;
+      const cls = o.matched ? "matched" : (missing ? "warn" : "");
+      return `
+        <div class="row ${cls}" data-id="${o.id}" data-kind="order">
+          <div class="led"></div>
+          <div class="row-main">
+            <div class="row-line1">
+              <span>${o.date ? fmtDate(o.date) : '<span style="color:var(--red)">дата?</span>'}</span>
+              <span class="machine-badge">${o.machine || 'машина?'}</span>
+            </div>
+            <div class="row-line2">
+              <span>${escapeHtml(o.numerZlecenia || "—")}</span>
+              <span class="code ${!o.labelCode ? 'missing':''}">${o.labelCode || 'код?'}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+  }
+ 
+  // ---------- RENDER: LABELS ----------
+  const labelsList = document.getElementById("labelsList");
+  function renderLabels(){
+    const arr = state.labels.slice().sort((a,b) => a.digits.localeCompare(b.digits));
+    if(arr.length === 0){
+      labelsList.innerHTML = `<div class="empty">Список етикеток порожній.<br>Натисніть «Додати етикетки».</div>`;
+      return;
+    }
+    labelsList.innerHTML = arr.map(l => {
+      const matched = l.matchedMachines && l.matchedMachines.length > 0;
+      return `
+        <div class="row label-row ${matched ? 'matched':''}" data-id="${l.id}" data-kind="label">
+          <div class="led"></div>
+          <div class="row-main">
+            <div class="code-main">${l.raw}</div>
+            ${matched ? `<div class="label-matches">${l.matchedMachines.map(m=>`<span class="machine-badge">${m}</span>`).join("")}</div>` : ''}
+          </div>
+          <div class="row-actions">
+            <button class="icon-btn" data-action="delete-label" data-id="${l.id}">✕</button>
+          </div>
+        </div>`;
+    }).join("");
+  }
+ 
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+ 
+  function renderAll(){ recompute(); renderOrders(); renderLabels(); renderMachines(); }
+ 
+  // ---------- TABS ----------
+  document.querySelectorAll(".tab").forEach(t => {
+    t.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      document.getElementById("view-" + t.dataset.tab).classList.add("active");
+    });
   });
  
-  function persistSlotInputsToState() {
-    Array.from(apiKeySlotsEl.querySelectorAll('.key-slot-input')).forEach(input => {
-      const idx = Number(input.dataset.slot);
-      state.apiKeys[idx] = input.value.trim();
+  // ---------- CLOCK ----------
+  function tickClock(){
+    const d = new Date();
+    document.getElementById("clock").textContent = d.toLocaleDateString('uk-UA') + " " + d.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+  }
+  tickClock(); setInterval(tickClock, 30000);
+ 
+  // ---------- SETTINGS: MACHINES ----------
+  const machinesListEl = document.getElementById("machinesList");
+  function renderMachines(){
+    document.getElementById("machineCount").textContent = state.machines.length;
+    machinesListEl.innerHTML = state.machines.map(m => `
+      <span class="machine-chip">${m}<button data-action="rm-machine" data-m="${m}">✕</button></span>
+    `).join("");
+  }
+  document.getElementById("btnAddMachine").addEventListener("click", () => {
+    const inp = document.getElementById("newMachineInput");
+    const v = inp.value.trim().toUpperCase();
+    if(!v) return;
+    if(!state.machines.includes(v)) state.machines.push(v);
+    saveMachines();
+    inp.value = "";
+    renderMachines();
+  });
+  document.getElementById("btnResetMachines").addEventListener("click", () => {
+    if(!confirm("Скинути список машин до типового переліку?")) return;
+    state.machines = DEFAULT_MACHINES.slice();
+    saveMachines();
+    renderMachines();
+  });
+  machinesListEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action=rm-machine]");
+    if(!btn) return;
+    state.machines = state.machines.filter(m => m !== btn.dataset.m);
+    saveMachines();
+    renderMachines();
+  });
+  saveMachines();
+ 
+  // ---------- ORDER DETAIL MODAL ----------
+  const overlayOrderDetail = document.getElementById("overlayOrderDetail");
+  let editingOrderId = null;
+ 
+  function fillMachineSelect(selectEl, currentVal){
+    selectEl.innerHTML = `<option value="">— вибрати —</option>` + state.machines.map(m => `<option value="${m}" ${m===currentVal?'selected':''}>${m}</option>`).join("");
+  }
+ 
+  function openOrderDetail(id){
+    const o = state.orders.find(x => x.id === id);
+    if(!o) return;
+    editingOrderId = id;
+    document.getElementById("odSub").textContent = o.matched ? " · знайдено на буфері" : " · очікує етикетки";
+    document.getElementById("odDate").value = o.date || "";
+    fillMachineSelect(document.getElementById("odMachine"), o.machine);
+    document.getElementById("odNumer").value = o.numerZlecenia || "";
+    document.getElementById("odLabel").value = o.labelCode || "";
+    document.getElementById("odFullText").value = o.fullText || "";
+    overlayOrderDetail.classList.add("open");
+  }
+  document.getElementById("odCancel").addEventListener("click", () => overlayOrderDetail.classList.remove("open"));
+  document.getElementById("odSave").addEventListener("click", () => {
+    const o = state.orders.find(x => x.id === editingOrderId);
+    if(!o) return;
+    o.date = document.getElementById("odDate").value || null;
+    o.machine = document.getElementById("odMachine").value || null;
+    o.numerZlecenia = document.getElementById("odNumer").value.trim();
+    o.labelCode = document.getElementById("odLabel").value.trim();
+    o.fullText = document.getElementById("odFullText").value;
+    overlayOrderDetail.classList.remove("open");
+    renderAll();
+  });
+  document.getElementById("odDelete").addEventListener("click", () => {
+    if(!confirm("Видалити цю заявку?")) return;
+    state.orders = state.orders.filter(x => x.id !== editingOrderId);
+    overlayOrderDetail.classList.remove("open");
+    renderAll();
+  });
+ 
+  ordersList.addEventListener("click", (e) => {
+    const row = e.target.closest(".row[data-kind=order]");
+    if(row) openOrderDetail(row.dataset.id);
+  });
+ 
+  labelsList.addEventListener("click", (e) => {
+    const delBtn = e.target.closest("[data-action=delete-label]");
+    if(delBtn){
+      if(confirm("Видалити цей код етикетки?")){
+        state.labels = state.labels.filter(l => l.id !== delBtn.dataset.id);
+        renderAll();
+      }
+      return;
+    }
+  });
+ 
+  // ---------- CLEAR ALL ----------
+  document.getElementById("btnClearOrders").addEventListener("click", () => {
+    if(state.orders.length===0) return;
+    if(!confirm("Очистити весь список заявок?")) return;
+    state.orders = [];
+    renderAll();
+  });
+  document.getElementById("btnClearLabels").addEventListener("click", () => {
+    if(state.labels.length===0) return;
+    if(!confirm("Очистити весь список етикеток?")) return;
+    state.labels = [];
+    renderAll();
+  });
+ 
+  // ---------- ADD ORDER MODAL ----------
+  const overlayAddOrder = document.getElementById("overlayAddOrder");
+  const aoThumbs = document.getElementById("aoThumbs");
+  const aoStatus = document.getElementById("aoStatus");
+  let aoFiles = [];
+  let aoReviewData = [];
+ 
+  function resetAddOrderModal(){
+    document.getElementById("aoText").value = "";
+    aoFiles = [];
+    aoThumbs.innerHTML = "";
+    aoStatus.textContent = "";
+    aoStatus.className = "status-line";
+    document.getElementById("aoReviewWrap").style.display = "none";
+    document.querySelector("#overlayAddOrder .modal-actions").style.display = "flex";
+    document.getElementById("aoText").parentElement.style.display = "block";
+    document.querySelector("#overlayAddOrder .divider").style.display = "flex";
+    document.querySelector("#overlayAddOrder .method-grid").style.display = "flex";
+  }
+ 
+  document.getElementById("btnAddOrder").addEventListener("click", () => {
+    resetAddOrderModal();
+    overlayAddOrder.classList.add("open");
+  });
+  document.getElementById("aoCancel").addEventListener("click", () => overlayAddOrder.classList.remove("open"));
+ 
+  function addThumb(container, file, filesArr){
+    const url = URL.createObjectURL(file);
+    const div = document.createElement("div");
+    div.className = "thumb";
+    div.innerHTML = `<img src="${url}"><button class="rm">✕</button>`;
+    div.querySelector(".rm").addEventListener("click", () => {
+      const idx = filesArr.indexOf(file);
+      if(idx>-1) filesArr.splice(idx,1);
+      div.remove();
+    });
+    container.appendChild(div);
+  }
+ 
+  document.getElementById("aoGallery").addEventListener("change", (e) => {
+    Array.from(e.target.files).forEach(f => { aoFiles.push(f); addThumb(aoThumbs, f, aoFiles); });
+    e.target.value = "";
+  });
+  document.getElementById("aoCamera").addEventListener("change", (e) => {
+    Array.from(e.target.files).forEach(f => { aoFiles.push(f); addThumb(aoThumbs, f, aoFiles); });
+    e.target.value = "";
+  });
+ 
+  document.getElementById("aoRecognize").addEventListener("click", async () => {
+    const manualText = document.getElementById("aoText").value.trim();
+    if(!manualText && aoFiles.length===0){
+      aoStatus.textContent = "Додайте текст або хоча б одне фото.";
+      aoStatus.className = "status-line err";
+      return;
+    }
+    aoStatus.textContent = "Розпізнавання...";
+    aoStatus.className = "status-line";
+    let combined = manualText ? manualText + "\n" : "";
+    try{
+      for(const f of aoFiles){
+        const t = await ocrImage(f);
+        combined += "\n" + t;
+      }
+    }catch(err){
+      aoStatus.textContent = "Помилка розпізнавання: " + err.message;
+      aoStatus.className = "status-line err";
+      return;
+    }
+    const parsed = parseOrdersText(combined);
+    if(parsed.length===0){
+      aoStatus.textContent = "Заявок не знайдено. Перевірте текст/фото та спробуйте ще раз.";
+      aoStatus.className = "status-line err";
+      return;
+    }
+    aoStatus.textContent = `Знайдено заявок: ${parsed.length}`;
+    aoStatus.className = "status-line ok";
+    aoReviewData = parsed;
+    renderAoReview();
+  });
+ 
+  function renderAoReview(){
+    document.getElementById("aoReviewWrap").style.display = "block";
+    document.querySelector("#overlayAddOrder .modal-actions").style.display = "none";
+    document.getElementById("aoText").parentElement.style.display = "none";
+    document.querySelector("#overlayAddOrder .divider").style.display = "none";
+    document.querySelector("#overlayAddOrder .method-grid").style.display = "none";
+    aoThumbs.style.display = "none";
+ 
+    const wrap = document.getElementById("aoReviewList");
+    wrap.innerHTML = aoReviewData.map((o, i) => `
+      <div class="review-card" data-idx="${i}">
+        <div class="rc-head"><span>Заявка ${i+1}</span></div>
+        <div class="row2">
+          <div class="field"><label>Дата</label><input type="date" class="rc-date" value="${o.date || ''}"></div>
+          <div class="field"><label>Машина</label><select class="rc-machine"></select></div>
+        </div>
+        <div class="field"><label>Numer zlecenia</label><input type="text" class="rc-numer" value="${escapeAttr(o.numerZlecenia)}"></div>
+        <div class="field"><label>Код етикетки</label><input type="text" class="rc-label" value="${escapeAttr(o.labelCode)}"></div>
+      </div>
+    `).join("");
+    wrap.querySelectorAll(".review-card").forEach((card, i) => {
+      fillMachineSelect(card.querySelector(".rc-machine"), aoReviewData[i].machine);
     });
   }
  
-  function openSettings() {
-    renderMethodToggle();
-    renderApiKeySlots();
-    renderCounts();
-    openSheet('settings');
+  function escapeAttr(s){ return String(s||"").replace(/"/g,"&quot;"); }
+ 
+  document.getElementById("aoBack").addEventListener("click", () => {
+    resetAddOrderModal();
+  });
+ 
+  document.getElementById("aoSaveAll").addEventListener("click", () => {
+    const cards = document.querySelectorAll("#aoReviewList .review-card");
+    cards.forEach((card, i) => {
+      const base = aoReviewData[i];
+      state.orders.push({
+        id: uid(),
+        date: card.querySelector(".rc-date").value || null,
+        machine: card.querySelector(".rc-machine").value || null,
+        numerZlecenia: card.querySelector(".rc-numer").value.trim(),
+        labelCode: card.querySelector(".rc-label").value.trim(),
+        fullText: base.fullText || ""
+      });
+    });
+    saveOrders();
+    overlayAddOrder.classList.remove("open");
+    renderAll();
+  });
+ 
+  // ---------- ADD LABELS MODAL ----------
+  const overlayAddLabels = document.getElementById("overlayAddLabels");
+  const alThumbs = document.getElementById("alThumbs");
+  const alStatus = document.getElementById("alStatus");
+  let alFiles = [];
+  let alReviewData = [];
+ 
+  function resetAddLabelsModal(){
+    document.getElementById("alText").value = "";
+    alFiles = [];
+    alThumbs.innerHTML = "";
+    alThumbs.style.display = "flex";
+    alStatus.textContent = "";
+    alStatus.className = "status-line";
+    document.getElementById("alReviewWrap").style.display = "none";
+    document.querySelector("#overlayAddLabels .modal-actions").style.display = "flex";
+    document.getElementById("alText").parentElement.style.display = "block";
+    document.querySelector("#overlayAddLabels .divider").style.display = "flex";
+    document.querySelector("#overlayAddLabels .method-grid").style.display = "flex";
   }
-  document.getElementById('settingsBtn').addEventListener('click', openSettings);
  
-  document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
-    persistSlotInputsToState();
-    if (!state.apiKeys[state.activeKeyIndex]) {
-      // Active slot ended up empty — fall back to the first non-empty slot, if any.
-      const firstFilled = state.apiKeys.findIndex(k => k);
-      state.activeKeyIndex = firstFilled >= 0 ? firstFilled : 0;
+  document.getElementById("btnAddLabels").addEventListener("click", () => {
+    resetAddLabelsModal();
+    overlayAddLabels.classList.add("open");
+  });
+  document.getElementById("alCancel").addEventListener("click", () => overlayAddLabels.classList.remove("open"));
+ 
+  document.getElementById("alGallery").addEventListener("change", (e) => {
+    Array.from(e.target.files).forEach(f => { alFiles.push(f); addThumb(alThumbs, f, alFiles); });
+    e.target.value = "";
+  });
+  document.getElementById("alCamera").addEventListener("change", (e) => {
+    Array.from(e.target.files).forEach(f => { alFiles.push(f); addThumb(alThumbs, f, alFiles); });
+    e.target.value = "";
+  });
+ 
+  document.getElementById("alRecognize").addEventListener("click", async () => {
+    const manualText = document.getElementById("alText").value.trim();
+    if(!manualText && alFiles.length===0){
+      alStatus.textContent = "Додайте текст або хоча б одне фото.";
+      alStatus.className = "status-line err";
+      return;
     }
-    saveState();
-    renderApiKeySlots();
-    closeAllSheets();
-    showToast(`Ключі збережено · активний №${state.activeKeyIndex + 1}`);
+    alStatus.textContent = "Розпізнавання...";
+    alStatus.className = "status-line";
+    let combined = manualText ? manualText + "\n" : "";
+    try{
+      for(const f of alFiles){
+        const t = await ocrImage(f);
+        combined += "\n" + t;
+      }
+    }catch(err){
+      alStatus.textContent = "Помилка розпізнавання: " + err.message;
+      alStatus.className = "status-line err";
+      return;
+    }
+    const parsed = parseLabelCodes(combined);
+    if(parsed.length===0){
+      alStatus.textContent = "Кодів не знайдено. Перевірте текст/фото та спробуйте ще раз.";
+      alStatus.className = "status-line err";
+      return;
+    }
+    alStatus.textContent = `Знайдено кодів: ${parsed.length}`;
+    alStatus.className = "status-line ok";
+    alReviewData = parsed;
+    renderAlReview();
   });
  
-  document.getElementById('clearLabelsBtn').addEventListener('click', () => {
-    if (!confirm('Видалити весь список зліцензій? Цю дію не можна скасувати.')) return;
-    state.labels = [];
-    saveState();
-    renderCounts();
-    renderList();
-    showToast('Список зліцензій очищено', true);
+  function renderAlReview(){
+    document.getElementById("alReviewWrap").style.display = "block";
+    document.querySelector("#overlayAddLabels .modal-actions").style.display = "none";
+    document.getElementById("alText").parentElement.style.display = "none";
+    document.querySelector("#overlayAddLabels .divider").style.display = "none";
+    document.querySelector("#overlayAddLabels .method-grid").style.display = "none";
+    alThumbs.style.display = "none";
+ 
+    const wrap = document.getElementById("alReviewList");
+    wrap.innerHTML = `<div id="alChips"></div>`;
+    const chips = document.getElementById("alChips");
+    renderChips();
+    function renderChips(){
+      chips.innerHTML = alReviewData.map((c,i) => `<span class="code-chip">${c.raw}<button class="rm" data-i="${i}">✕</button></span>`).join("");
+      chips.querySelectorAll(".rm").forEach(btn => {
+        btn.addEventListener("click", () => {
+          alReviewData.splice(Number(btn.dataset.i),1);
+          renderChips();
+        });
+      });
+    }
+  }
+ 
+  document.getElementById("alBack").addEventListener("click", () => {
+    resetAddLabelsModal();
   });
  
-  document.getElementById('clearVerifyBtn').addEventListener('click', () => {
-    if (!confirm('Видалити весь список звірки складу? Цю дію не можна скасувати.')) return;
-    state.verifications = [];
-    saveState();
-    renderCounts();
-    renderList();
-    showToast('Список звірки очищено', true);
+  document.getElementById("alSaveAll").addEventListener("click", () => {
+    const existingDigits = new Set(state.labels.map(l => l.digits));
+    alReviewData.forEach(c => {
+      if(existingDigits.has(c.digits)) return;
+      state.labels.push({ id: uid(), raw: c.raw, digits: c.digits, matchedMachines: [] });
+      existingDigits.add(c.digits);
+    });
+    saveLabels();
+    overlayAddLabels.classList.remove("open");
+    renderAll();
   });
  
-  // ---------- Init ----------
-  renderCounts();
-  renderList();
- 
+  // ---------- INIT ----------
+  renderAll();
 })();
 </script>
- 
 </body>
 </html>
  
