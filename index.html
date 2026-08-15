@@ -130,8 +130,14 @@
     justify-content: center;
     transition: transform .1s;
   }
+  .key-badge.hw-mode {
+    background: rgba(95,184,125,0.1);
+    border: 1px solid rgba(95,184,125,0.3);
+    color: var(--ok-bright);
+  }
   .key-badge:active { transform: scale(0.94); }
   .key-badge span::before { content: '№'; opacity: 0.7; margin-right: 1px; }
+  .key-badge.hw-mode span::before { content: '⚙'; margin-right: 3px; }
  
   /* ---------- Tabs ---------- */
   .mode-tabs {
@@ -325,13 +331,18 @@
     font-size: 12px;
     color: var(--text-faint);
     margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
+  .entry-meta .order-tag { color: var(--text); font-weight: 700; }
   .entry-meta .machine-tag {
     color: var(--signal-bright);
     font-weight: 700;
   }
   .entry-meta .found-tag { color: var(--ok-bright); font-weight: 700; }
   .entry-meta .missing-tag { color: var(--miss-bright); font-weight: 700; }
+  .entry-meta .date-tag { color: var(--text-dim); font-weight: 700; }
  
   .entry-menu-btn {
     width: 30px;
@@ -420,6 +431,16 @@
     margin: 6px auto 16px;
   }
  
+  .sheet-step {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--signal-bright);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+ 
   .sheet-title {
     font-size: 18px;
     font-weight: 800;
@@ -429,6 +450,26 @@
     font-size: 13px;
     color: var(--text-faint);
     margin-bottom: 20px;
+  }
+ 
+  .selection-summary {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .selection-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 11px;
+    border-radius: 10px;
+    background: rgba(240,168,60,0.1);
+    border: 1px solid rgba(240,168,60,0.25);
+    color: var(--signal-bright);
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
   }
  
   .field { margin-bottom: 16px; }
@@ -466,116 +507,35 @@
     margin-top: 6px;
   }
  
-  /* ---------- API key slots ---------- */
-  .key-slot {
+  /* ---------- Segmented control (recognition mode) ---------- */
+  .segmented {
     display: flex;
-    align-items: center;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
   }
-  .key-slot-num {
-    width: 30px;
-    height: 42px;
-    border-radius: 11px;
-    background: var(--bg-card);
+  .seg-btn {
+    flex: 1;
+    padding: 13px 8px;
+    border-radius: 13px;
     border: 1.5px solid var(--stroke);
+    background: var(--bg-card);
     color: var(--text-dim);
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 13px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: border-color .15s, color .15s, background .15s;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
   }
-  .key-slot.active .key-slot-num {
+  .seg-btn.active {
     border-color: var(--signal);
-    background: rgba(240,168,60,0.14);
+    background: rgba(240,168,60,0.12);
     color: var(--signal-bright);
   }
-  .key-slot-input {
-    flex: 1;
-    min-width: 0;
-    padding: 11px 12px;
-    border-radius: 11px;
-    border: 1.5px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text);
-    font-size: 13px;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    outline: none;
-    transition: border-color .15s;
+  .seg-btn.active.hw {
+    border-color: var(--ok);
+    background: rgba(95,184,125,0.12);
+    color: var(--ok-bright);
   }
-  .key-slot-input:focus { border-color: var(--signal); }
-  .key-slot-input::placeholder { color: var(--text-faint); font-family: inherit; }
-  .key-slot.active .key-slot-input { border-color: var(--signal-dim); }
-  .key-slot-activate {
-    width: 42px;
-    height: 42px;
-    border-radius: 11px;
-    border: 1.5px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text-faint);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: border-color .15s, color .15s, background .15s, transform .1s;
-  }
-  .key-slot-activate:active { transform: scale(0.92); }
-  .key-slot-activate svg { width: 17px; height: 17px; }
-  .key-slot.active .key-slot-activate {
-    border-color: var(--signal);
-    background: var(--signal);
-    color: #241605;
-  }
- 
-  .sheet-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 6px;
-  }
-  .sheet-actions .btn-primary, .sheet-actions .btn-secondary { flex: 1; }
- 
-  .btn-primary {
-    width: 100%;
-    padding: 16px;
-    border-radius: 15px;
-    border: none;
-    background: var(--signal);
-    color: #241605;
-    font-size: 15px;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: transform .12s, filter .15s;
-  }
-  .btn-primary:active { transform: scale(0.98); filter: brightness(1.08); }
-  .btn-primary:disabled { opacity: 0.4; pointer-events: none; }
-  .btn-primary svg { width: 18px; height: 18px; }
- 
-  .btn-secondary {
-    width: 100%;
-    padding: 14px;
-    border-radius: 15px;
-    border: 1px solid var(--stroke);
-    background: var(--bg-card);
-    color: var(--text-dim);
-    font-size: 14.5px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: border-color .15s, color .15s, transform .12s;
-  }
-  .btn-secondary:active { transform: scale(0.98); }
  
   /* ---------- Machine picker ---------- */
   .machine-grid {
@@ -607,6 +567,67 @@
     color: var(--signal-bright);
   }
  
+  /* ---------- Calendar picker ---------- */
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .calendar-header .cal-label {
+    font-size: 15px;
+    font-weight: 800;
+    text-transform: capitalize;
+  }
+  .cal-nav-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--stroke);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .cal-nav-btn svg { width: 16px; height: 16px; }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+  .cal-weekday {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-faint);
+    padding: 4px 0 8px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1.5px solid var(--stroke);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s, transform .1s;
+  }
+  .cal-day:active { transform: scale(0.92); }
+  .cal-day.empty { visibility: hidden; pointer-events: none; border: none; background: none; }
+  .cal-day.today { border-color: var(--signal-dim); color: var(--signal-bright); }
+  .cal-day.selected {
+    border-color: var(--signal);
+    background: var(--signal);
+    color: #241605;
+  }
+ 
   /* ---------- Scan / capture states ---------- */
   .scan-mic-zone {
     display: flex;
@@ -631,16 +652,6 @@
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
- 
-  .scan-code-display {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 36px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    color: var(--signal-bright);
-    text-align: center;
-    margin: 6px 0 2px;
-  }
  
   .result-banner {
     display: flex;
@@ -814,7 +825,7 @@
       <div class="brand-text">Етикетки</div>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      <button class="key-badge" id="keyBadge" aria-label="Активний ключ" title="Активний API ключ — натисніть, щоб перемкнути">
+      <button class="key-badge" id="keyBadge" aria-label="Спосіб розпізнавання" title="Натисніть, щоб відкрити налаштування">
         <span id="keyBadgeNum">1</span>
       </button>
       <button class="icon-btn" id="settingsBtn" aria-label="Налаштування">
@@ -841,7 +852,7 @@
       </div>
       <div class="action-text">
         <div class="action-title">Додати зліцензію</div>
-        <div class="action-sub">Фото коду → вибір машини</div>
+        <div class="action-sub" id="scanBtnSub">Машина → дата → код</div>
       </div>
     </button>
     <button class="action-card card-verify" id="verifyLabelBtn">
@@ -850,7 +861,7 @@
       </div>
       <div class="action-text">
         <div class="action-title">Звірити на складі</div>
-        <div class="action-sub">Фото етикетки на коробці</div>
+        <div class="action-sub" id="verifyBtnSub">Фото етикетки на коробці</div>
       </div>
     </button>
   </div>
@@ -865,7 +876,7 @@
 <!-- Overlay -->
 <div class="overlay" id="overlay"></div>
  
-<!-- Source picker (shared by both scan flows) -->
+<!-- Source picker (shared by AI scan flows) -->
 <div class="sheet" id="sourceSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title" id="sourceSheetTitle">Додати фото</div>
@@ -890,7 +901,7 @@
       </span>
     </button>
   </div>
-  <div class="sheet-actions">
+  <div class="sheet-actions" style="margin-top:6px;">
     <button class="btn-secondary" id="cancelSource" style="width:100%;">Скасувати</button>
   </div>
 </div>
@@ -900,13 +911,45 @@
 <input type="file" id="verifyCameraInput" accept="image/*" capture="environment" style="display:none;">
 <input type="file" id="verifyGalleryInput" accept="image/*" multiple style="display:none;">
  
-<!-- Scan label flow: processing -> confirm code -> pick machine -->
+<!-- Add-label flow: machine -> date -> (photo/AI or manual/hardware) -> confirm -->
 <div class="sheet" id="scanSheet">
   <div class="sheet-handle"></div>
  
-  <div id="scanProcessing">
-    <div class="sheet-title">Читаю код...</div>
-    <div class="sheet-subtitle">AI розпізнає шестизначний номер</div>
+  <div id="scanMachinePick">
+    <div class="sheet-step">Крок 1 з 3</div>
+    <div class="sheet-title">На яку машину?</div>
+    <div class="sheet-subtitle">Оберіть виробничу машину для нової зліцензії</div>
+    <div class="machine-grid" id="addMachineGrid"></div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="cancelAddMachine">Скасувати</button>
+      <button class="btn-primary" id="nextAddMachine" disabled>Далі — дата</button>
+    </div>
+  </div>
+ 
+  <div id="scanDatePick" style="display:none;">
+    <div class="sheet-step">Крок 2 з 3</div>
+    <div class="sheet-title">Оберіть дату</div>
+    <div class="sheet-subtitle">Машина <span class="mono" id="addDateMachineLabel" style="color:var(--signal-bright); font-weight:700;"></span></div>
+    <div class="calendar-header">
+      <button class="cal-nav-btn" id="calPrevMonth" aria-label="Попередній місяць">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="cal-label" id="calendarMonthLabel"></div>
+      <button class="cal-nav-btn" id="calNextMonth" aria-label="Наступний місяць">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+    <div class="sheet-actions" style="margin-top:14px;">
+      <button class="btn-secondary" id="backAddDate">Назад</button>
+      <button class="btn-primary" id="nextAddDate" disabled>Далі</button>
+    </div>
+  </div>
+ 
+  <div id="scanProcessing" style="display:none;">
+    <div class="sheet-step">Крок 3 з 3</div>
+    <div class="sheet-title">Читаю дані...</div>
+    <div class="sheet-subtitle">AI розпізнає код, назву та номер зліцензії</div>
     <div class="scan-mic-zone">
       <img id="scanPreviewImg" class="scan-preview">
       <div class="scan-spinner"></div>
@@ -914,29 +957,29 @@
   </div>
  
   <div id="scanConfirm" style="display:none;">
+    <div class="sheet-step">Крок 3 з 3</div>
     <div class="sheet-title">Перевірте дані</div>
-    <div class="sheet-subtitle">Поправте, якщо AI помилився</div>
+    <div class="sheet-subtitle" id="scanConfirmSub">Поправте, якщо AI помилився</div>
+    <div class="selection-summary">
+      <span class="selection-chip" id="confirmMachineChip"></span>
+      <span class="selection-chip" id="confirmDateChip"></span>
+    </div>
     <div class="field">
-      <label class="field-label">Код зліцензії</label>
+      <label class="field-label">Код зліцензії (6 цифр)</label>
       <input type="text" inputmode="numeric" class="field-input mono" id="scanCodeInput" placeholder="069526" maxlength="8">
     </div>
     <div class="field">
       <label class="field-label">Nazwa (виріб, литраж)</label>
       <input type="text" class="field-input" id="scanNazwaInput" placeholder="Напр. Farba biała 5L">
     </div>
-    <div class="sheet-actions">
-      <button class="btn-secondary" id="cancelScanConfirm">Скасувати</button>
-      <button class="btn-primary" id="nextScanConfirm">Далі — вибрати машину</button>
+    <div class="field">
+      <label class="field-label">Numer zlecenia (номер зліцензії)</label>
+      <input type="text" class="field-input mono" id="scanOrderInput" placeholder="Напр. ZPR/P /2026/004949 або 004949">
+      <div class="field-hint">У списку показуватимуться лише останні цифри після «/».</div>
     </div>
-  </div>
- 
-  <div id="scanMachinePick" style="display:none;">
-    <div class="sheet-title">На яку машину?</div>
-    <div class="sheet-subtitle">Код <span class="mono" id="scanMachineCodeLabel" style="color:var(--signal-bright); font-weight:700;"></span> — оберіть виробничу машину</div>
-    <div class="machine-grid" id="machineGrid"></div>
     <div class="sheet-actions">
-      <button class="btn-secondary" id="backScanMachine">Назад</button>
-      <button class="btn-primary" id="saveScanEntry" disabled>Зберегти</button>
+      <button class="btn-secondary" id="backScanConfirm">Назад</button>
+      <button class="btn-primary" id="saveScanEntry">Зберегти</button>
     </div>
   </div>
  
@@ -950,9 +993,28 @@
   </div>
 </div>
  
-<!-- Verify flow: processing -> list of found codes -> confirm -->
+<!-- Verify flow: (AI photo or manual codes) -> list of found codes -> confirm -->
 <div class="sheet" id="verifySheet">
   <div class="sheet-handle"></div>
+ 
+  <div id="verifyManual" style="display:none;">
+    <div class="sheet-title">Введіть коди вручну</div>
+    <div class="sheet-subtitle">Апаратний режим — без фото та інтернету</div>
+    <div class="field">
+      <label class="field-label">Код (6 цифр, починається з 0)</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" inputmode="numeric" class="field-input mono" id="verifyManualCodeInput" placeholder="069526" maxlength="8" style="flex:1;">
+        <button class="key-slot-activate" id="verifyManualAddBtn" style="width:52px; height:52px; flex-shrink:0;" aria-label="Додати код">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="verify-result-list" id="verifyManualList"></div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="cancelVerifyManual">Скасувати</button>
+      <button class="btn-primary" id="doneVerifyManual" disabled>Перевірити</button>
+    </div>
+  </div>
  
   <div id="verifyProcessing">
     <div class="sheet-title">Звіряю коди...</div>
@@ -987,7 +1049,7 @@
 <div class="sheet" id="editSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title" id="editSheetTitle">Редагувати запис</div>
-  <div class="sheet-subtitle">Змініть код або машину</div>
+  <div class="sheet-subtitle">Змініть дані запису</div>
   <div class="field">
     <label class="field-label">Код</label>
     <input type="text" inputmode="numeric" class="field-input mono" id="editCodeInput" maxlength="8">
@@ -995,6 +1057,14 @@
   <div class="field" id="editNazwaField">
     <label class="field-label">Nazwa (виріб, литраж)</label>
     <input type="text" class="field-input" id="editNazwaInput" placeholder="Напр. Farba biała 5L">
+  </div>
+  <div class="field" id="editOrderField">
+    <label class="field-label">Numer zlecenia (номер зліцензії)</label>
+    <input type="text" class="field-input mono" id="editOrderInput" placeholder="Напр. ZPR/P /2026/004949 або 004949">
+  </div>
+  <div class="field" id="editDateField">
+    <label class="field-label">Дата</label>
+    <input type="date" class="field-input" id="editDateInput">
   </div>
   <div class="field" id="editMachineField">
     <label class="field-label">Машина</label>
@@ -1010,9 +1080,18 @@
 <div class="sheet" id="settingsSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title">Налаштування</div>
-  <div class="sheet-subtitle">Gemini API ключі та керування даними</div>
+  <div class="sheet-subtitle">Спосіб розпізнавання, Gemini API ключі та керування даними</div>
  
   <div class="field">
+    <label class="field-label">Спосіб розпізнавання</label>
+    <div class="segmented" id="recognitionModeSeg">
+      <button class="seg-btn" data-mode="ai">Через ШІ (фото)</button>
+      <button class="seg-btn hw" data-mode="hardware">Апаратне (без інтернету)</button>
+    </div>
+    <div class="field-hint">Апаратне — код, назву, номер зліцензії та коди звірки вводите вручну, без фото та без інтернету. Через ШІ — дані розпізнаються з фото автоматично (потрібні інтернет та API-ключ).</div>
+  </div>
+ 
+  <div class="field" id="apiKeysSection">
     <label class="field-label">API ключі (до 5 акаунтів)</label>
     <div class="field-hint" style="margin-top:0; margin-bottom:10px;">Заповніть один чи декілька. Активний ключ позначений зіркою — саме він використовується зараз. Натисніть «Активувати», щоб перемкнутись вручну, коли на поточному ключі закінчиться ліміт.</div>
     <div id="apiKeySlots"></div>
@@ -1029,7 +1108,7 @@
     <button class="btn-secondary" id="clearVerifyBtn">Очистити звірку</button>
   </div>
   <div class="sheet-actions">
-    <button class="btn-primary" id="saveApiKeyBtn" style="width:100%;">Зберегти ключі</button>
+    <button class="btn-primary" id="saveApiKeyBtn" style="width:100%;">Зберегти налаштування</button>
   </div>
 </div>
  
@@ -1051,7 +1130,8 @@
   const defaultState = {
     apiKeys: ['', '', '', '', ''], // 5 numbered slots, switch manually when one hits rate limit
     activeKeyIndex: 0,
-    labels: [],  // {id, code, nazwa, machine, ts}
+    recognitionMode: 'ai', // 'ai' (Gemini photo recognition) | 'hardware' (manual entry, offline)
+    labels: [],  // {id, code, nazwa, orderNumber, machine, date(YYYY-MM-DD), ts}
     verifications: [] // {id, code, found, machine, ts}
   };
  
@@ -1072,6 +1152,15 @@
       if (typeof merged.activeKeyIndex !== 'number' || merged.activeKeyIndex < 0 || merged.activeKeyIndex > 4) {
         merged.activeKeyIndex = 0;
       }
+      if (merged.recognitionMode !== 'ai' && merged.recognitionMode !== 'hardware') {
+        merged.recognitionMode = 'ai';
+      }
+      // Backfill fields on older saved labels so rendering/editing never breaks.
+      merged.labels = (merged.labels || []).map(l => ({
+        orderNumber: '',
+        date: new Date(l.ts || Date.now()).toISOString().slice(0, 10),
+        ...l
+      }));
       return merged;
     } catch (e) {
       return { ...defaultState };
@@ -1088,12 +1177,16 @@
     return (state.apiKeys[state.activeKeyIndex] || '').trim();
   }
  
+  function isHardwareMode() {
+    return state.recognitionMode === 'hardware';
+  }
+ 
   // If an error looks like a Gemini rate-limit (429), prepend a hint pointing
   // at which key slot is active, so the person knows to switch to another one.
   function friendlyErrorText(raw, fallbackMsg) {
     if (raw === 'code_not_found') return fallbackMsg;
     if (raw.includes('429') || raw.toLowerCase().includes('quota') || raw.toLowerCase().includes('too_many_requests')) {
-      return `Вичерпано ліміт на ключі №${state.activeKeyIndex + 1}. Перемкніться на інший ключ у налаштуваннях (значок №${state.activeKeyIndex + 1} зверху) і спробуйте ще раз.\n\n${raw}`;
+      return `Вичерпано ліміт на ключі №${state.activeKeyIndex + 1}. Перемкніться на інший ключ у налаштуваннях (значок зверху) і спробуйте ще раз, або перейдіть на апаратний режим.\n\n${raw}`;
     }
     return 'Помилка: ' + raw;
   }
@@ -1126,6 +1219,18 @@
     return `${datePart} · ${timePart}`;
   }
  
+  // Format a YYYY-MM-DD string as DD.MM.YYYY for display.
+  function fmtIsoDate(iso) {
+    if (!iso) return '—';
+    const parts = iso.split('-');
+    if (parts.length !== 3) return iso;
+    return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  }
+ 
+  function todayIso() {
+    return new Date().toISOString().slice(0, 10);
+  }
+ 
   // Normalize a recognized code: strip any leading letter/symbol prefix (E, G, #),
   // keep the six digits starting with 0.
   function normalizeCode(raw) {
@@ -1144,6 +1249,19 @@
  
   function isValidCode(code) {
     return /^0\d{5}$/.test(code);
+  }
+ 
+  // "Numer zlecenia" numbers look like "ZPR/P /2026/004949" — only the digits
+  // after the LAST "/" should ever be shown or stored as the display value.
+  function normalizeOrderNumber(raw) {
+    if (!raw) return '';
+    let s = String(raw).trim();
+    if (s.includes('/')) {
+      const parts = s.split('/').map(p => p.trim()).filter(Boolean);
+      s = parts.length ? parts[parts.length - 1] : s;
+    }
+    const digits = s.replace(/[^0-9]/g, '');
+    return digits || s;
   }
  
   // ---------- Toast ----------
@@ -1204,14 +1322,35 @@
     document.getElementById('countVerify').textContent = state.verifications.length;
     document.getElementById('settingsCountLabels').textContent = state.labels.length;
     document.getElementById('settingsCountVerify').textContent = state.verifications.length;
-    document.getElementById('keyBadgeNum').textContent = state.activeKeyIndex + 1;
+ 
+    const badge = document.getElementById('keyBadge');
+    const badgeNum = document.getElementById('keyBadgeNum');
+    badge.classList.toggle('hw-mode', isHardwareMode());
+    badgeNum.textContent = isHardwareMode() ? 'HW' : String(state.activeKeyIndex + 1);
+ 
+    document.getElementById('scanBtnSub').textContent = isHardwareMode()
+      ? 'Машина → дата → дані вручну'
+      : 'Машина → дата → фото коду';
+    document.getElementById('verifyBtnSub').textContent = isHardwareMode()
+      ? 'Ввести коди вручну'
+      : 'Фото етикетки на коробці';
   }
  
   document.getElementById('keyBadge').addEventListener('click', openSettings);
  
+  // Labels are always shown sorted by their chosen date (newest first),
+  // falling back to creation time as a tie-breaker.
+  function sortedLabels() {
+    return [...state.labels].sort((a, b) => {
+      const byDate = (b.date || '').localeCompare(a.date || '');
+      if (byDate !== 0) return byDate;
+      return (b.ts || 0) - (a.ts || 0);
+    });
+  }
+ 
   function renderList() {
     const listEl = document.getElementById('entryList');
-    const items = activeMode === 'labels' ? state.labels : state.verifications;
+    const items = activeMode === 'labels' ? sortedLabels() : state.verifications;
  
     if (items.length === 0) {
       listEl.innerHTML = `
@@ -1235,8 +1374,9 @@
         if (isVerified) {
           verifiedDot = '<span class="verified-dot" title="Знайдено на складі"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>';
         }
+        const orderHtml = entry.orderNumber ? `№<span class="order-tag">${escapeHtml(entry.orderNumber)}</span> · ` : '';
         const nazwaHtml = entry.nazwa ? `${escapeHtml(entry.nazwa)} · ` : '';
-        metaHtml = `${nazwaHtml}<span class="machine-tag">${escapeHtml(entry.machine)}</span> · ${fmtDate(entry.ts)}`;
+        metaHtml = `${orderHtml}${nazwaHtml}<span class="machine-tag">${escapeHtml(entry.machine)}</span> · <span class="date-tag">${fmtIsoDate(entry.date)}</span>`;
       } else {
         if (entry.found) {
           badgeHtml = `<div class="entry-badge found"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>`;
@@ -1309,11 +1449,15 @@
     showToast('Запис видалено', true);
   }
  
-  // ---------- Edit entry (labels only get machine + nazwa editing) ----------
+  // ---------- Edit entry (labels get order number, date, machine + nazwa editing) ----------
   let editingId = null;
   const editCodeInput = document.getElementById('editCodeInput');
   const editNazwaField = document.getElementById('editNazwaField');
   const editNazwaInput = document.getElementById('editNazwaInput');
+  const editOrderField = document.getElementById('editOrderField');
+  const editOrderInput = document.getElementById('editOrderInput');
+  const editDateField = document.getElementById('editDateField');
+  const editDateInput = document.getElementById('editDateInput');
   const editMachineField = document.getElementById('editMachineField');
   const editMachineGrid = document.getElementById('editMachineGrid');
   let editSelectedMachine = null;
@@ -1330,11 +1474,17 @@
     if (activeMode === 'labels') {
       editNazwaField.style.display = 'block';
       editNazwaInput.value = entry.nazwa || '';
+      editOrderField.style.display = 'block';
+      editOrderInput.value = entry.orderNumber || '';
+      editDateField.style.display = 'block';
+      editDateInput.value = entry.date || todayIso();
       editMachineField.style.display = 'block';
       editSelectedMachine = entry.machine;
       bindEditMachineGrid();
     } else {
       editNazwaField.style.display = 'none';
+      editOrderField.style.display = 'none';
+      editDateField.style.display = 'none';
       editMachineField.style.display = 'none';
       editSelectedMachine = null;
     }
@@ -1375,6 +1525,8 @@
       if (!editSelectedMachine) { showToast('Оберіть машину', true); return; }
       entry.machine = editSelectedMachine;
       entry.nazwa = editNazwaInput.value.trim();
+      entry.orderNumber = normalizeOrderNumber(editOrderInput.value.trim());
+      entry.date = editDateInput.value || entry.date || todayIso();
     }
  
     reconcileAll();
@@ -1385,22 +1537,8 @@
     showToast('Зміни збережено');
   });
  
-  // ---------- Source picker (shared) ----------
+  // ---------- Source picker (shared, AI mode only) ----------
   let pendingFlow = null; // 'scan' | 'verify'
- 
-  document.getElementById('scanLabelBtn').addEventListener('click', () => {
-    if (!activeApiKey()) { showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях`, true); openSettings(); return; }
-    pendingFlow = 'scan';
-    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
-    openSheet('source');
-  });
- 
-  document.getElementById('verifyLabelBtn').addEventListener('click', () => {
-    if (!activeApiKey()) { showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях`, true); openSettings(); return; }
-    pendingFlow = 'verify';
-    document.getElementById('sourceSheetTitle').textContent = 'Фото етикеток на коробках';
-    openSheet('source');
-  });
  
   document.getElementById('cancelSource').addEventListener('click', closeAllSheets);
  
@@ -1448,15 +1586,16 @@
     await runVerifyFlow(files);
   }
  
-  // ---------- Gemini call: single code + nazwa (used for scanning a license/zliczenie) ----------
+  // ---------- Gemini call: code + nazwa + order number (used for scanning a license/zliczenie) ----------
   async function recognizeCodeWithGemini(base64Image, mimeType, apiKey) {
     const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
     const prompt = `На цьому фото є документ (zliczenie) з ідентифікаційним кодом виробу та назвою продукції. Код складається рівно з шести цифр і завжди починається з цифри 0 (наприклад 069526). Перед нулем іноді може стояти літера (E або G) або символ #, або нічого не стояти — це не частина коду, ігноруй такий префікс.
 Також знайди назву (nazwa) виробу — зазвичай це назва продукту та його литраж/обсяг (наприклад "Farba biała 5L").
+Також знайди номер зліцензії — рядок після напису "Numer zlecenia:" (наприклад "ZPR/P /2026/004949").
 Поверни ЛИШЕ JSON, без жодного іншого тексту, у форматі:
-{"code": "069526", "nazwa": "Farba biała 5L"}
-Якщо код не вдалося знайти або він нечіткий, поверни {"code": null, "nazwa": null}.
-Якщо назву не вдалося знайти, залиш "nazwa": null, але поверни код, якщо він розпізнаний.`;
+{"code": "069526", "nazwa": "Farba biała 5L", "orderNumber": "ZPR/P /2026/004949"}
+Якщо код не вдалося знайти або він нечіткий, поверни {"code": null, "nazwa": null, "orderNumber": null}.
+Якщо назву або номер зліцензії не вдалося знайти, залиш відповідне поле null, але поверни код, якщо він розпізнаний.`;
  
     const response = await fetch(url, {
       method: 'POST',
@@ -1488,7 +1627,8 @@
     if (!parsed.code) throw new Error('code_not_found');
     return {
       code: normalizeCode(parsed.code),
-      nazwa: parsed.nazwa ? String(parsed.nazwa).trim() : ''
+      nazwa: parsed.nazwa ? String(parsed.nazwa).trim() : '',
+      orderNumber: parsed.orderNumber ? normalizeOrderNumber(String(parsed.orderNumber).trim()) : ''
     };
   }
  
@@ -1553,11 +1693,15 @@
     return rawText;
   }
  
-  // ---------- Scan (add label) flow ----------
+  // ============================================================
+  // Add-label flow: machine -> date (calendar) -> AI photo or
+  // hardware manual entry -> confirm/save
+  // ============================================================
   const scanStates = {
+    machinePick: document.getElementById('scanMachinePick'),
+    datePick: document.getElementById('scanDatePick'),
     processing: document.getElementById('scanProcessing'),
     confirm: document.getElementById('scanConfirm'),
-    machinePick: document.getElementById('scanMachinePick'),
     error: document.getElementById('scanError')
   };
   function showScanState(key) {
@@ -1565,11 +1709,151 @@
     scanStates[key].style.display = 'block';
   }
  
-  let lastScanFile = null;
-  let scanSelectedMachine = null;
+  let addFlowMachine = null;
+  let addFlowDate = null; // YYYY-MM-DD
+  let calendarViewDate = new Date();
+ 
+  document.getElementById('scanLabelBtn').addEventListener('click', () => {
+    if (!isHardwareMode() && !activeApiKey()) {
+      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перейдіть на апаратний режим`, true);
+      openSettings();
+      return;
+    }
+    openAddFlow();
+  });
+ 
+  function openAddFlow() {
+    addFlowMachine = null;
+    addFlowDate = todayIso();
+    calendarViewDate = new Date();
+    buildAddMachineGrid();
+    document.getElementById('nextAddMachine').disabled = true;
+    showScanState('machinePick');
+    openSheet('scan');
+  }
+ 
+  function buildAddMachineGrid() {
+    const grid = document.getElementById('addMachineGrid');
+    grid.innerHTML = '';
+    const nextBtn = document.getElementById('nextAddMachine');
+    MACHINES.forEach(m => {
+      const chip = document.createElement('button');
+      chip.className = 'machine-chip' + (m === addFlowMachine ? ' selected' : '');
+      chip.textContent = m;
+      chip.addEventListener('click', () => {
+        addFlowMachine = m;
+        Array.from(grid.children).forEach(c => c.classList.toggle('selected', c.textContent === m));
+        nextBtn.disabled = false;
+      });
+      grid.appendChild(chip);
+    });
+  }
+ 
+  document.getElementById('cancelAddMachine').addEventListener('click', closeAllSheets);
+ 
+  document.getElementById('nextAddMachine').addEventListener('click', () => {
+    if (!addFlowMachine) return;
+    document.getElementById('addDateMachineLabel').textContent = addFlowMachine;
+    calendarViewDate = addFlowDate ? new Date(addFlowDate + 'T00:00:00') : new Date();
+    buildCalendar();
+    showScanState('datePick');
+  });
+ 
+  document.getElementById('backAddDate').addEventListener('click', () => showScanState('machinePick'));
+ 
+  function buildCalendar() {
+    const cal = document.getElementById('calendarGrid');
+    const year = calendarViewDate.getFullYear();
+    const month = calendarViewDate.getMonth();
+    document.getElementById('calendarMonthLabel').textContent =
+      calendarViewDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
+ 
+    cal.innerHTML = '';
+    const weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+    weekdays.forEach(w => {
+      const el = document.createElement('div');
+      el.className = 'cal-weekday';
+      el.textContent = w;
+      cal.appendChild(el);
+    });
+ 
+    const firstDay = new Date(year, month, 1).getDay(); // 0 = Sunday
+    const offset = (firstDay + 6) % 7; // convert to Monday-first
+    for (let i = 0; i < offset; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'cal-day empty';
+      cal.appendChild(empty);
+    }
+ 
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const nowIso = todayIso();
+    const nextBtn = document.getElementById('nextAddDate');
+ 
+    for (let d = 1; d <= totalDays; d++) {
+      const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const btn = document.createElement('button');
+      btn.className = 'cal-day';
+      if (iso === nowIso) btn.classList.add('today');
+      if (iso === addFlowDate) btn.classList.add('selected');
+      btn.textContent = String(d);
+      btn.addEventListener('click', () => {
+        addFlowDate = iso;
+        buildCalendar();
+        nextBtn.disabled = false;
+      });
+      cal.appendChild(btn);
+    }
+ 
+    nextBtn.disabled = !addFlowDate;
+  }
+ 
+  document.getElementById('calPrevMonth').addEventListener('click', () => {
+    calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() - 1, 1);
+    buildCalendar();
+  });
+  document.getElementById('calNextMonth').addEventListener('click', () => {
+    calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 1);
+    buildCalendar();
+  });
+ 
+  document.getElementById('nextAddDate').addEventListener('click', () => {
+    if (!addFlowDate) return;
+    if (isHardwareMode()) {
+      // No AI, no photo — go straight to a blank manual entry form.
+      document.getElementById('scanCodeInput').value = '';
+      document.getElementById('scanNazwaInput').value = '';
+      document.getElementById('scanOrderInput').value = '';
+      document.getElementById('scanConfirmSub').textContent = 'Апаратний режим — введіть дані вручну';
+      fillConfirmSummary();
+      showScanState('confirm');
+    } else {
+      pendingFlow = 'scan';
+      document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
+      openSheet('source');
+    }
+  });
+ 
+  function fillConfirmSummary() {
+    document.getElementById('confirmMachineChip').textContent = addFlowMachine || '';
+    document.getElementById('confirmDateChip').textContent = fmtIsoDate(addFlowDate);
+  }
+ 
+  document.getElementById('scanErrorClose').addEventListener('click', closeAllSheets);
+  document.getElementById('scanErrorRetry').addEventListener('click', () => {
+    if (isHardwareMode()) {
+      showScanState('datePick');
+    } else {
+      pendingFlow = 'scan';
+      document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
+      openSheet('source');
+    }
+  });
+ 
+  document.getElementById('backScanConfirm').addEventListener('click', () => {
+    showScanState('datePick');
+  });
  
   async function runScanFlow(file) {
-    lastScanFile = file;
     showScanState('processing');
     openSheet('scan');
  
@@ -1582,6 +1866,9 @@
       const result = await recognizeCodeWithGemini(base64, mimeType, activeApiKey());
       document.getElementById('scanCodeInput').value = result.code;
       document.getElementById('scanNazwaInput').value = result.nazwa || '';
+      document.getElementById('scanOrderInput').value = result.orderNumber || '';
+      document.getElementById('scanConfirmSub').textContent = 'Поправте, якщо AI помилився';
+      fillConfirmSummary();
       showScanState('confirm');
     } catch (err) {
       showScanState('error');
@@ -1593,54 +1880,22 @@
     }
   }
  
-  document.getElementById('cancelScanConfirm').addEventListener('click', closeAllSheets);
-  document.getElementById('scanErrorClose').addEventListener('click', closeAllSheets);
-  document.getElementById('scanErrorRetry').addEventListener('click', () => {
-    pendingFlow = 'scan';
-    document.getElementById('sourceSheetTitle').textContent = 'Фото зліцензії';
-    openSheet('source');
-  });
- 
-  document.getElementById('nextScanConfirm').addEventListener('click', () => {
+  document.getElementById('saveScanEntry').addEventListener('click', () => {
     const rawCode = document.getElementById('scanCodeInput').value.trim();
     const code = normalizeCode(rawCode);
     if (!isValidCode(code)) { showToast('Код має бути 6 цифр, починається з 0', true); return; }
-    document.getElementById('scanCodeInput').value = code;
-    document.getElementById('scanMachineCodeLabel').textContent = code;
-    scanSelectedMachine = null;
-    buildScanMachineGrid();
-    showScanState('machinePick');
-  });
+    if (!addFlowMachine || !addFlowDate) { showToast('Оберіть машину та дату', true); return; }
  
-  function buildScanMachineGrid() {
-    const grid = document.getElementById('machineGrid');
-    grid.innerHTML = '';
-    const saveBtn = document.getElementById('saveScanEntry');
-    saveBtn.disabled = true;
-    MACHINES.forEach(m => {
-      const chip = document.createElement('button');
-      chip.className = 'machine-chip';
-      chip.textContent = m;
-      chip.addEventListener('click', () => {
-        scanSelectedMachine = m;
-        Array.from(grid.children).forEach(c => c.classList.toggle('selected', c.textContent === m));
-        saveBtn.disabled = false;
-      });
-      grid.appendChild(chip);
-    });
-  }
- 
-  document.getElementById('backScanMachine').addEventListener('click', () => showScanState('confirm'));
- 
-  document.getElementById('saveScanEntry').addEventListener('click', () => {
-    if (!scanSelectedMachine) return;
-    const code = document.getElementById('scanCodeInput').value.trim();
     const nazwa = document.getElementById('scanNazwaInput').value.trim();
+    const orderNumber = normalizeOrderNumber(document.getElementById('scanOrderInput').value.trim());
+ 
     state.labels.unshift({
       id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
       code,
       nazwa,
-      machine: scanSelectedMachine,
+      orderNumber,
+      machine: addFlowMachine,
+      date: addFlowDate,
       ts: Date.now()
     });
     reconcileAll();
@@ -1648,11 +1903,14 @@
     renderCounts();
     renderList();
     closeAllSheets();
-    showToast(`Додано: ${code} → ${scanSelectedMachine}`);
+    showToast(`Додано: ${code} → ${addFlowMachine} (${fmtIsoDate(addFlowDate)})`);
   });
  
-  // ---------- Verify (warehouse check) flow ----------
+  // ============================================================
+  // Verify (warehouse check) flow: AI photo(s) or hardware manual codes
+  // ============================================================
   const verifyStates = {
+    manual: document.getElementById('verifyManual'),
     processing: document.getElementById('verifyProcessing'),
     result: document.getElementById('verifyResult'),
     error: document.getElementById('verifyError')
@@ -1663,6 +1921,92 @@
   }
  
   let pendingVerifyResults = []; // [{code, found, machine, removed}]
+  let verifyManualCodes = [];
+ 
+  document.getElementById('verifyLabelBtn').addEventListener('click', () => {
+    if (isHardwareMode()) {
+      openVerifyManualEntry();
+      return;
+    }
+    if (!activeApiKey()) {
+      showToast(`Немає ключа в слоті №${state.activeKeyIndex + 1} — додайте у налаштуваннях, або перейдіть на апаратний режим`, true);
+      openSettings();
+      return;
+    }
+    pendingFlow = 'verify';
+    document.getElementById('sourceSheetTitle').textContent = 'Фото етикеток на коробках';
+    openSheet('source');
+  });
+ 
+  function openVerifyManualEntry() {
+    verifyManualCodes = [];
+    document.getElementById('verifyManualCodeInput').value = '';
+    renderVerifyManualList();
+    showVerifyState('manual');
+    openSheet('verify');
+    setTimeout(() => document.getElementById('verifyManualCodeInput').focus(), 320);
+  }
+ 
+  function renderVerifyManualList() {
+    const listEl = document.getElementById('verifyManualList');
+    const doneBtn = document.getElementById('doneVerifyManual');
+    doneBtn.disabled = verifyManualCodes.length === 0;
+    if (verifyManualCodes.length === 0) {
+      listEl.innerHTML = '';
+      return;
+    }
+    listEl.innerHTML = '';
+    verifyManualCodes.forEach((code, idx) => {
+      const item = document.createElement('div');
+      item.className = 'verify-result-item found';
+      item.style.background = 'var(--bg-card)';
+      item.style.border = '1px solid var(--stroke-soft)';
+      item.innerHTML = `
+        <div class="vri-icon" style="background:rgba(240,168,60,0.12); color:var(--signal-bright);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/></svg>
+        </div>
+        <div class="vri-info"><div class="vri-code mono">${code}</div></div>
+        <button class="vri-remove" data-idx="${idx}" aria-label="Прибрати">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+        </button>`;
+      listEl.appendChild(item);
+    });
+  }
+ 
+  document.getElementById('verifyManualList').addEventListener('click', (e) => {
+    const btn = e.target.closest('.vri-remove');
+    if (!btn) return;
+    verifyManualCodes.splice(Number(btn.dataset.idx), 1);
+    renderVerifyManualList();
+  });
+ 
+  document.getElementById('verifyManualAddBtn').addEventListener('click', addManualVerifyCode);
+  document.getElementById('verifyManualCodeInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addManualVerifyCode(); }
+  });
+ 
+  function addManualVerifyCode() {
+    const input = document.getElementById('verifyManualCodeInput');
+    const code = normalizeCode(input.value.trim());
+    if (!isValidCode(code)) { showToast('Код має бути 6 цифр, починається з 0', true); return; }
+    if (verifyManualCodes.includes(code)) { showToast('Цей код вже додано', true); input.value = ''; return; }
+    verifyManualCodes.push(code);
+    input.value = '';
+    input.focus();
+    renderVerifyManualList();
+  }
+ 
+  document.getElementById('cancelVerifyManual').addEventListener('click', closeAllSheets);
+ 
+  document.getElementById('doneVerifyManual').addEventListener('click', () => {
+    if (verifyManualCodes.length === 0) return;
+    pendingVerifyResults = verifyManualCodes.map(code => {
+      const match = state.labels.find(l => l.code === code);
+      return { code, found: !!match, machine: match ? match.machine : null, removed: false };
+    });
+    renderVerifyResultList();
+    showVerifyState('result');
+  });
  
   async function runVerifyFlow(files) {
     showVerifyState('processing');
@@ -1847,6 +2191,7 @@
     state.activeKeyIndex = idx;
     saveState();
     renderApiKeySlots();
+    renderCounts();
     showToast(`Активовано ключ №${idx + 1}`);
   });
  
@@ -1857,8 +2202,27 @@
     });
   }
  
+  // Recognition mode segmented control
+  const recognitionModeSeg = document.getElementById('recognitionModeSeg');
+  function renderRecognitionModeSeg() {
+    Array.from(recognitionModeSeg.querySelectorAll('.seg-btn')).forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === state.recognitionMode);
+    });
+    document.getElementById('apiKeysSection').style.opacity = isHardwareMode() ? '0.55' : '1';
+  }
+  recognitionModeSeg.addEventListener('click', (e) => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    state.recognitionMode = btn.dataset.mode;
+    saveState();
+    renderRecognitionModeSeg();
+    renderCounts();
+    showToast(state.recognitionMode === 'hardware' ? 'Увімкнено апаратний режим (без інтернету)' : 'Увімкнено розпізнавання через ШІ');
+  });
+ 
   function openSettings() {
     renderApiKeySlots();
+    renderRecognitionModeSeg();
     renderCounts();
     openSheet('settings');
   }
@@ -1873,13 +2237,15 @@
     }
     saveState();
     renderApiKeySlots();
+    renderCounts();
     closeAllSheets();
-    showToast(`Ключі збережено · активний №${state.activeKeyIndex + 1}`);
+    showToast(isHardwareMode() ? 'Налаштування збережено · апаратний режим' : `Налаштування збережено · активний №${state.activeKeyIndex + 1}`);
   });
  
   document.getElementById('clearLabelsBtn').addEventListener('click', () => {
     if (!confirm('Видалити весь список зліцензій? Цю дію не можна скасувати.')) return;
     state.labels = [];
+    reconcileAll();
     saveState();
     renderCounts();
     renderList();
